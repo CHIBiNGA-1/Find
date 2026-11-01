@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* Design tokens: every component reads from these. */
+:root {
+  --font-ui: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+
+  --color-bg: #f6f7f4;
+  --color-surface: #ffffff;
+  --color-ink: #14201b;
+  --color-ink-muted: #4d5b54;       /* 6.9:1 on bg */
+  --color-line: #dde2dc;
+  --color-brand: #0f6b4f;           /* malachite */
+  --color-brand-ink: #ffffff;
+  --color-accent: #b9760a;          /* honey, text-safe on white */
+  --color-success: #17794d;
+  --color-warning: #8a5a00;
+  --color-danger: #b42318;
+  --color-info: #1f5fa8;
+  --color-focus: #1f5fa8;
+
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
+  --shadow-raised: 0 1px 2px rgb(20 32 27 / 0.06), 0 4px 12px rgb(20 32 27 / 0.05);
+  --space-gutter: clamp(16px, 4vw, 32px);
+  --width-content: 1120px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms; --dur-base: 200ms;
+  --z-nav: 40; --z-overlay: 60;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-ink-muted);
+  --color-line: var(--color-line);
+  --color-brand: var(--color-brand);
+  --color-accent: var(--color-accent);
+  --color-danger: var(--color-danger);
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+  --radius-md: var(--radius-md);
+}
+
+html { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-ui); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+.price, .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
