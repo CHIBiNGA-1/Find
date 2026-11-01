@@ -2,7 +2,7 @@ import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/auth/callback", "/offline"];
+const PUBLIC_PATHS = ["/welcome", "/sign-in", "/sign-up", "/auth/callback", "/offline"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -21,8 +21,9 @@ export async function middleware(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some((p) => request.nextUrl.pathname.startsWith(p));
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = "/sign-in";
-    url.searchParams.set("next", request.nextUrl.pathname);
+    const home = request.nextUrl.pathname === "/";
+    url.pathname = home ? "/welcome" : "/sign-in";
+    if (!home) url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
   if (user && isPublic && request.nextUrl.pathname !== "/auth/callback") {

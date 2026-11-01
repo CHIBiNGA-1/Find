@@ -6,12 +6,12 @@
   --font-display: "Newsreader", Georgia, "Times New Roman", serif;
 
   /* Neutrals: a faint green undertone keeps the page calm next to the brand colour */
-  --color-bg: #f5f6f2;
+  --color-bg: #f5f2ec;
   --color-surface: #ffffff;
   --color-ink: #111a15;
   --color-ink-muted: #56635b;          /* 6.4:1 on bg */
-  --color-line: #e2e6df;               /* hairline */
-  --color-line-strong: #c9d0c6;
+  --color-line: #e4ded2;               /* hairline */
+  --color-line-strong: #d0c8b9;
   --color-brand: #0f6b4f;              /* malachite */
   --color-brand-strong: #0a5640;
   --color-brand-ink: #ffffff;
@@ -51,7 +51,7 @@ html { background: var(--color-bg); color: var(--color-ink); font-family: var(--
 .t-meta { font-size: var(--text-small); color: var(--color-ink-muted); }
 
 /* ── Controls: three buttons, one field. Nothing else is invented per screen. ── */
-.btn { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; border-radius: var(--radius-md); font-size: 0.9375rem; font-weight: 550; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.btn { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; border-radius: var(--radius-md); font-size: 0.9375rem; font-weight: 550; line-height: 1; white-space: nowrap; cursor: pointer; border-radius: 999px; transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-primary { background: var(--color-brand); color: var(--color-brand-ink); }
@@ -60,7 +60,7 @@ html { background: var(--color-bg); color: var(--color-ink); font-family: var(--
 .btn-quiet:hover:not(:disabled) { border-color: var(--color-ink); }
 .link { color: var(--color-ink); text-decoration: underline; text-decoration-color: var(--color-line-strong); text-underline-offset: 4px; transition: text-decoration-color var(--dur-fast) var(--ease); }
 .link:hover { text-decoration-color: var(--color-ink); }
-.field { display: block; width: 100%; min-height: 44px; padding: 0 14px; background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-line-strong); border-radius: var(--radius-md); font-size: 1rem; transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
+.field { display: block; width: 100%; min-height: 44px; padding: 0 16px; background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-line-strong); border-radius: 12px; font-size: 1rem; transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
 .field::placeholder { color: #7b877f; }
 .field:hover { border-color: var(--color-ink-muted); }
 .field:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px rgb(15 107 79 / 0.14); }
@@ -74,7 +74,7 @@ textarea.field { padding-top: 10px; padding-bottom: 10px; }
 /* ── Surfaces with a little life ───────────────────────────────────────────── */
 :root {
   --shadow-soft: 0 1px 2px rgb(14 40 30 / 0.05), 0 8px 24px rgb(14 40 30 / 0.06);
-  --color-mint: #e9f4ee; --color-footer: #0b3d30;
+  --color-mint: #ecf0e8; --color-footer: #0b3d30;
 }
 .card { background: var(--color-surface); border-radius: 14px; box-shadow: var(--shadow-soft); }
 .card-link { transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease); }
@@ -87,3 +87,14 @@ textarea.field { padding-top: 10px; padding-bottom: 10px; }
 .tint-green { background: #e1f1ea; color: #0f6b4f; } .tint-clay { background: #f8e7de; color: #a4491f; }
 .tint-slate { background: #e8ecee; color: #33424a; } .tint-teal { background: #dff1f1; color: #0e6a6a; }
 @media (prefers-reduced-motion: reduce) { .card-link:hover { transform: none; } }
+
+/* ── Palette from the brief: sage, sand, honey, forest ─────────────────────── */
+:root { --sage-200: #cfdacb; --sage-500: #6f8a6d; --sand-100: #efe8dc; --sand-200: #e3d7c4; --honey-200: #f6dca0; --ink: #111a15; }
+.blk { border-radius: 28px; padding: clamp(24px, 4vw, 40px); }
+.blk-sand { background: var(--sand-100); } .blk-sand2 { background: var(--sand-200); }
+.blk-sage { background: var(--sage-200); } .blk-honey { background: var(--honey-200); }
+.blk-forest { background: var(--color-footer); color: #fff; } .blk-white { background: var(--color-surface); }
+.arch { border-radius: 999px 999px 24px 24px; overflow: hidden; }
+.btn-ink { background: var(--ink); color: #fff; padding-right: 8px; }
+.btn-ink:hover:not(:disabled) { background: #26352c; }
+.btn-ink .chip { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: #fff; color: var(--ink); }
