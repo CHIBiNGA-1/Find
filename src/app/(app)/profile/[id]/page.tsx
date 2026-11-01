@@ -21,7 +21,7 @@ export default async function Profile({ params }: { params: Promise<{ id: string
   return (
     <main>
       <h1 className="font-serif text-3xl tracking-tight">{p.display_name}</h1>
-      <p className="mt-1 text-sm text-muted">Verified member of your university. Verification confirms membership, not how someone will behave.</p>
+      <p className="mt-1 text-sm text-muted">Verified member of the university. Verification confirms membership, not how someone will behave.</p>
       <p className="mt-3">{n > 0 ? <><span className="price font-semibold">{rep?.[0]?.avg_rating} out of 5</span> from {n} confirmed exchange{n === 1 ? "" : "s"}</> : "No reviews yet. Reviews only come from exchanges both people confirmed."}</p>
       {id !== userId && <div className="mt-2"><ReportDialog type="user" targetId={id} label="Report user" /></div>}
       <h2 className="mb-3 mt-8 font-semibold">Active listings</h2>

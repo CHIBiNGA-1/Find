@@ -20,7 +20,7 @@ export default async function SettingsPage() {
       <section className="mt-8">
         <h2 className="font-semibold text-lg">Profile</h2>
         <p className="mt-1 text-sm text-muted">
-          Your display name is visible to other verified members of your university.
+          Your display name is visible to other verified members of the university.
         </p>
         <ProfileForm displayName={profile?.display_name ?? ""} />
       </section>

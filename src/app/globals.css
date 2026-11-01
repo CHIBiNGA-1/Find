@@ -70,3 +70,20 @@ textarea.field { padding-top: 10px; padding-bottom: 10px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ── Surfaces with a little life ───────────────────────────────────────────── */
+:root {
+  --shadow-soft: 0 1px 2px rgb(14 40 30 / 0.05), 0 8px 24px rgb(14 40 30 / 0.06);
+  --color-mint: #e9f4ee; --color-footer: #0b3d30;
+}
+.card { background: var(--color-surface); border-radius: 14px; box-shadow: var(--shadow-soft); }
+.card-link { transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease); }
+.card-link:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgb(14 40 30 / 0.06), 0 14px 32px rgb(14 40 30 / 0.1); }
+.tag { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: #e1f1ea; color: #0a5640; }
+.tag-amber { background: #fbefd8; color: #7a4d00; } .tag-blue { background: #e4edf9; color: #1b4f8e; }
+.section-link { font-size: 0.875rem; font-weight: 600; color: var(--color-brand); }
+.section-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.tint-blue { background: #e4edf9; color: #1b4f8e; } .tint-amber { background: #fbefd8; color: #8a5a00; }
+.tint-green { background: #e1f1ea; color: #0f6b4f; } .tint-clay { background: #f8e7de; color: #a4491f; }
+.tint-slate { background: #e8ecee; color: #33424a; } .tint-teal { background: #dff1f1; color: #0e6a6a; }
+@media (prefers-reduced-motion: reduce) { .card-link:hover { transform: none; } }

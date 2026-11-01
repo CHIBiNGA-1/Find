@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +14,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: unreadRaw } = await supabase.rpc("unread_counts");
   const total = ((unreadRaw ?? []) as { conversation_id: string; unread: number }[]).reduce((n, u) => n + Number(u.unread), 0);
   return (
-    <div className="md:pl-56">
+    <div>
       <AppNav unread={total} />
-      <div className="mx-auto max-w-[var(--width-content)] px-[var(--space-gutter)] pb-24 pt-8 md:pb-12">{children}</div>
+      <div className="mx-auto max-w-[var(--width-content)] px-[var(--space-gutter)] pb-4 pt-6 md:pt-24">{children}</div>
+      <SiteFooter />
     </div>
   );
 }

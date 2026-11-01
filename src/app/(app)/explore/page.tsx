@@ -132,7 +132,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
             <ListingCard
               id={l.id} title={l.title}
               priceMinor={l.price_minor} currency={currency}
-              condition={l.condition} image={covers.get(l.id)?.url}
+              condition={l.condition} publishedAt={l.published_at} image={covers.get(l.id)?.url}
             />
           </li>
         ))}

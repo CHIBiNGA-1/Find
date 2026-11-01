@@ -4,7 +4,7 @@ import { signOut } from "../(auth)/actions";
 import { requestMembership } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Join your university" };
+export const metadata = { title: "Join the university" };
 
 export default async function Onboarding() {
   const supabase = await createClient();

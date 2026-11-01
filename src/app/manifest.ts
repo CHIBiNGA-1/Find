@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "f!nd",
     short_name: "f!nd",
-    description: "The marketplace for your university community.",
+    description: "Buy, sell and find things on campus.",
     start_url: "/?source=pwa",
     scope: "/",
     display: "standalone",

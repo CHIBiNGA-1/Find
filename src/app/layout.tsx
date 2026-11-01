@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "f!nd", template: "%s · f!nd" },
-  description: "Buy, sell and find things within your university community.",
+  description: "Buy, sell and find things on campus.",
   applicationName: "f!nd",
   appleWebApp: { capable: true, title: "f!nd", statusBarStyle: "default" },
 };
