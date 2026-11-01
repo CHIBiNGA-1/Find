@@ -56,7 +56,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
         </h1>
         {hasFilters && (
           <Link href="/explore" className="text-sm text-muted hover:text-danger">
-            ✕ Clear filters
+            Clear filters
           </Link>
         )}
       </div>

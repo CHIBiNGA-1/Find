@@ -13,22 +13,35 @@ const ITEMS = [
 
 export function AppNav({ unread = 0 }: { unread?: number }) {
   const path = usePathname();
-  const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  const active = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
   return (
-    <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-[var(--z-nav)] border-t border-line bg-surface pb-safe md:inset-y-0 md:right-auto md:w-56 md:border-r md:border-t-0 md:p-4">
-      <Link href="/" className="mb-4 hidden px-3 text-3xl md:block" aria-label="f!nd home"><Wordmark /></Link>
-      <ul className="flex md:flex-col md:gap-1">
-        {ITEMS.map((i) => (
-          <li key={i.href} className="flex-1 md:flex-none">
-            <Link href={i.href} aria-current={active(i.href) ? "page" : undefined}
-              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs md:min-h-11 md:flex-row md:justify-start md:gap-3 md:rounded-[var(--radius-md)] md:px-3 md:text-sm ${active(i.href) ? "font-semibold text-brand md:bg-bg" : "text-muted"}`}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={i.d} /></svg>
-              {i.label}
-              {i.href === "/messages" && unread > 0 && <span className="rounded-full bg-brand px-1.5 text-[10px] font-semibold text-white"><span className="sr-only">Unread: </span>{unread > 99 ? "99+" : unread}</span>}
-            </Link>
-          </li>
-        ))}
+    <nav aria-label="Primary" className="pb-safe fixed inset-x-0 bottom-0 z-[var(--z-nav)] border-t border-line bg-surface md:inset-y-0 md:right-auto md:flex md:w-60 md:flex-col md:border-r md:border-t-0 md:px-5 md:py-7">
+      <Link href="/" aria-label="f!nd home" className="mb-10 hidden text-[1.75rem] md:block"><Wordmark /></Link>
+      <ul className="grid grid-cols-5 md:block md:space-y-0.5">
+        {ITEMS.map((i) => {
+          const on = active(i.href), sell = i.href === "/sell";
+          return (
+            <li key={i.href}>
+              <Link href={i.href} aria-current={on ? "page" : undefined}
+                className={`relative flex min-h-14 flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium transition-colors md:min-h-11 md:flex-row md:justify-start md:gap-3 md:rounded-[var(--radius-md)] md:px-3 md:text-[0.9375rem] ${on ? "text-ink md:bg-bg" : "text-muted hover:text-ink"}`}>
+                {on && <span aria-hidden="true" className="absolute inset-x-5 top-0 h-0.5 bg-brand md:inset-x-auto md:bottom-2.5 md:left-0 md:top-2.5 md:h-auto md:w-0.5" />}
+                <span className={sell ? "grid size-8 place-items-center rounded-[var(--radius-md)] bg-brand text-white md:size-5 md:rounded-none md:bg-transparent md:text-current" : ""}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={i.d} /></svg>
+                </span>
+                <span>{i.label}</span>
+                {i.href === "/messages" && unread > 0 && (
+                  <span className="absolute right-[calc(50%-1.5rem)] top-1.5 min-w-4 rounded-full bg-brand px-1 text-center text-[0.625rem] font-semibold leading-4 text-white md:static md:ml-auto">
+                    <span className="sr-only">Unread: </span>{unread > 99 ? "99+" : unread}
+                  </span>)}
+              </Link>
+            </li>);
+        })}
       </ul>
+      <div className="mt-8 hidden border-t border-line pt-5 md:block">
+        <p className="t-label mb-2 px-3">Campus</p>
+        {([{ h: "/requests", l: "Requests" }, { h: "/lost-found", l: "Lost and found" }] as const).map(({ h, l }) => (
+          <Link key={h} href={h} className={`flex min-h-10 items-center rounded-[var(--radius-md)] px-3 text-[0.9375rem] transition-colors ${path.startsWith(h) ? "text-ink" : "text-muted hover:text-ink"}`}>{l}</Link>))}
+      </div>
     </nav>
   );
 }

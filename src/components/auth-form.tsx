@@ -3,7 +3,7 @@ import { useActionState } from "react";
 import type { FormState } from "@/app/(auth)/actions";
 
 type Props = { action: (s: FormState, f: FormData) => Promise<FormState>; mode: "sign-in" | "sign-up"; next?: string };
-const input = "mt-1 block w-full min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-3 text-base aria-[invalid=true]:border-danger";
+const input = "field mt-1";
 
 export function AuthForm({ action, mode, next }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
@@ -27,7 +27,7 @@ export function AuthForm({ action, mode, next }: Props) {
         <span id="password-e" className="text-danger">{err("password")}</span>
       </label>
       {state.message && <p role="alert" className="text-sm text-danger">{state.message}</p>}
-      <button disabled={pending} className="min-h-11 w-full rounded-[var(--radius-md)] bg-brand px-4 font-medium text-white disabled:opacity-60">
+      <button disabled={pending} className="btn btn-primary w-full">
         {pending ? "Please wait…" : mode === "sign-in" ? "Sign in" : "Create account"}
       </button>
     </form>

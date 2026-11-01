@@ -1,51 +1,72 @@
 @import "tailwindcss";
 
-/* Design tokens: every component reads from these. */
+/* ── Design tokens ─ every component reads from these ─────────────────────── */
 :root {
   --font-ui: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Newsreader", Georgia, "Times New Roman", serif;
 
-  --color-bg: #f6f7f4;
+  /* Neutrals: a faint green undertone keeps the page calm next to the brand colour */
+  --color-bg: #f5f6f2;
   --color-surface: #ffffff;
-  --color-ink: #14201b;
-  --color-ink-muted: #4d5b54;       /* 6.9:1 on bg */
-  --color-line: #dde2dc;
-  --color-brand: #0f6b4f;           /* malachite */
+  --color-ink: #111a15;
+  --color-ink-muted: #56635b;          /* 6.4:1 on bg */
+  --color-line: #e2e6df;               /* hairline */
+  --color-line-strong: #c9d0c6;
+  --color-brand: #0f6b4f;              /* malachite */
+  --color-brand-strong: #0a5640;
   --color-brand-ink: #ffffff;
-  --color-accent: #b9760a;          /* honey, text-safe on white */
-  --color-success: #17794d;
-  --color-warning: #8a5a00;
-  --color-danger: #b42318;
-  --color-info: #1f5fa8;
+  --color-accent: #b9760a;             /* honey: the "!" in the wordmark, nothing else */
+  --color-success: #17794d; --color-warning: #8a5a00; --color-danger: #b42318; --color-info: #1f5fa8;
   --color-focus: #1f5fa8;
 
-  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
-  --shadow-raised: 0 1px 2px rgb(20 32 27 / 0.06), 0 4px 12px rgb(20 32 27 / 0.05);
-  --space-gutter: clamp(16px, 4vw, 32px);
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 14px;
+  --space-gutter: clamp(20px, 5vw, 40px);
   --width-content: 1120px;
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --dur-fast: 120ms; --dur-base: 200ms;
   --z-nav: 40; --z-overlay: 60;
+
+  /* Type scale: one place to change how the product reads */
+  --text-display: clamp(2.25rem, 1.6rem + 3vw, 3.75rem);
+  --text-title: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --text-body: 1rem; --text-small: 0.875rem; --text-label: 0.75rem;
 }
 
 @theme inline {
-  --color-bg: var(--color-bg);
-  --color-surface: var(--color-surface);
-  --color-ink: var(--color-ink);
-  --color-muted: var(--color-ink-muted);
-  --color-line: var(--color-line);
-  --color-brand: var(--color-brand);
-  --color-accent: var(--color-accent);
-  --color-danger: var(--color-danger);
-  --font-sans: var(--font-ui);
-  --font-serif: var(--font-display);
-  --radius-md: var(--radius-md);
+  --color-bg: var(--color-bg); --color-surface: var(--color-surface); --color-ink: var(--color-ink);
+  --color-muted: var(--color-ink-muted); --color-line: var(--color-line);
+  --color-brand: var(--color-brand); --color-accent: var(--color-accent); --color-danger: var(--color-danger);
+  --font-sans: var(--font-ui); --font-serif: var(--font-display); --radius-md: var(--radius-md);
 }
 
-html { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-ui); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+html { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 .price, .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
-:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; border-radius: 2px; }
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* ── Typography roles ──────────────────────────────────────────────────────── */
+.t-display { font-family: var(--font-display); font-weight: 500; font-size: var(--text-display); line-height: 1.04; letter-spacing: -0.025em; text-wrap: balance; }
+.t-title { font-family: var(--font-display); font-weight: 500; font-size: var(--text-title); line-height: 1.15; letter-spacing: -0.015em; }
+.t-label { font-size: var(--text-label); font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-ink-muted); }
+.t-meta { font-size: var(--text-small); color: var(--color-ink-muted); }
+
+/* ── Controls: three buttons, one field. Nothing else is invented per screen. ── */
+.btn { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; border-radius: var(--radius-md); font-size: 0.9375rem; font-weight: 550; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary { background: var(--color-brand); color: var(--color-brand-ink); }
+.btn-primary:hover:not(:disabled) { background: var(--color-brand-strong); }
+.btn-quiet { background: transparent; color: var(--color-ink); border: 1px solid var(--color-line-strong); }
+.btn-quiet:hover:not(:disabled) { border-color: var(--color-ink); }
+.link { color: var(--color-ink); text-decoration: underline; text-decoration-color: var(--color-line-strong); text-underline-offset: 4px; transition: text-decoration-color var(--dur-fast) var(--ease); }
+.link:hover { text-decoration-color: var(--color-ink); }
+.field { display: block; width: 100%; min-height: 44px; padding: 0 14px; background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-line-strong); border-radius: var(--radius-md); font-size: 1rem; transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
+.field::placeholder { color: #7b877f; }
+.field:hover { border-color: var(--color-ink-muted); }
+.field:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px rgb(15 107 79 / 0.14); }
+.field[aria-invalid="true"] { border-color: var(--color-danger); }
+textarea.field { padding-top: 10px; padding-bottom: 10px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

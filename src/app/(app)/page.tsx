@@ -4,128 +4,58 @@ import { coverImages } from "@/lib/listings/queries";
 import { ListingCard } from "@/components/listing-card";
 
 export const dynamic = "force-dynamic";
-
-type ListingRow = {
-  id: string; title: string; price_minor: number;
-  currency_code: string; condition: string;
-};
+type Row = { id: string; title: string; price_minor: number; condition: string };
 
 export default async function Home() {
   const { supabase, universityId, currency } = await getContext();
-
-  const [{ data: rawListings }, { data: categories }] = await Promise.all([
+  const [{ data: rows }, { data: categories }, { data: uni }] = await Promise.all([
     supabase.rpc("search_listings", { uni: universityId, lim: 16 }),
-    supabase.from("categories").select("id, slug, name").order("name"),
+    supabase.from("categories").select("id, name").order("name"),
+    supabase.from("universities").select("name").eq("id", universityId).maybeSingle(),
   ]);
-
-  const listings = (rawListings ?? []) as ListingRow[];
+  const listings = (rows ?? []) as Row[];
   const covers = await coverImages(listings.map((l) => l.id));
-
-  // Category icons map (slug → emoji fallback)
-  const catIcon: Record<string, string> = {
-    textbooks: "📚", electronics: "💻", furniture: "🪑",
-    clothing: "👕", services: "🔧", other: "📦",
-  };
+  const uniName = uni?.name ?? "your university";
 
   return (
     <main>
-      {/* Hero */}
-      <section>
-        <h1 className="font-serif text-4xl leading-tight tracking-tight md:text-5xl">
-          What does your campus<br className="hidden sm:block" /> have for you?
-        </h1>
-        <p className="mt-2 max-w-xl text-muted">
-          Buy, sell, swap and find things — only with verified students at your university.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6">
+        <div className="max-w-2xl">
+          <p className="t-label">{uniName}</p>
+          <h1 className="t-display mt-3">What your campus has for you.</h1>
+        </div>
+        <Link href="/sell" className="btn btn-primary">Sell an item</Link>
+      </header>
 
-        {/* Search bar */}
-        <form action="/explore" method="get" role="search" className="mt-5 flex max-w-xl gap-2">
-          <input
-            name="q"
-            type="search"
-            aria-label="Search listings"
-            placeholder="Search for anything…"
-            className="flex-1 min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-          <button
-            type="submit"
-            className="min-h-11 rounded-[var(--radius-md)] bg-brand px-5 font-medium text-white"
-          >
-            Search
-          </button>
-        </form>
-      </section>
+      <form action="/explore" method="get" role="search" className="mt-8 flex max-w-2xl gap-2">
+        <input name="q" type="search" aria-label="Search listings" placeholder="Search textbooks, laptops, furniture" className="field" />
+        <button className="btn btn-quiet">Search</button>
+      </form>
 
-      {/* Campus quick-links */}
-      <nav aria-label="Campus sections" className="mt-6 flex flex-wrap gap-2 text-sm">
-        <Link href="/sell" className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--radius-md)] bg-brand px-4 font-medium text-white">
-          + Sell something
-        </Link>
-        <Link href="/requests" className="inline-flex min-h-10 items-center rounded-[var(--radius-md)] border border-line bg-surface px-4">
-          Requests
-        </Link>
-        <Link href="/lost-found" className="inline-flex min-h-10 items-center rounded-[var(--radius-md)] border border-line bg-surface px-4">
-          Lost &amp; found
-        </Link>
-        <Link href="/messages" className="inline-flex min-h-10 items-center rounded-[var(--radius-md)] border border-line bg-surface px-4">
-          Messages
-        </Link>
+      <nav aria-label="Browse" className="mt-8 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-y border-line py-3 text-[0.9375rem]">
+        <Link href="/explore" className="font-semibold">All</Link>
+        {categories?.map((c) => <Link key={c.id} href={`/explore?cat=${c.id}`} className="text-muted transition-colors hover:text-ink">{c.name}</Link>)}
+        <span aria-hidden="true" className="hidden h-4 w-px bg-line sm:block" />
+        <Link href="/requests" className="text-muted transition-colors hover:text-ink">Requests</Link>
+        <Link href="/lost-found" className="text-muted transition-colors hover:text-ink">Lost and found</Link>
       </nav>
 
-      {/* Category pills */}
-      {categories && categories.length > 0 && (
-        <section aria-label="Browse by category" className="mt-8">
-          <h2 className="mb-3 font-semibold">Browse by category</h2>
-          <ul className="flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/explore?cat=${c.id}`}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm hover:border-brand hover:text-brand transition-colors"
-                >
-                  <span aria-hidden="true">{catIcon[c.slug] ?? "🏷️"}</span>
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* Recent listings */}
-      <section className="mt-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Recently listed</h2>
-          <Link href="/explore" className="text-sm text-brand underline-offset-2 hover:underline">
-            See all →
-          </Link>
+      <section className="mt-12" aria-labelledby="recent">
+        <div className="mb-6 flex items-baseline justify-between">
+          <h2 id="recent" className="t-title">Recently listed</h2>
+          {listings.length > 0 && <Link href="/explore" className="link t-meta">View all</Link>}
         </div>
-
-        {listings.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {listings.length ? (
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4">
             {listings.map((l) => (
-              <li key={l.id}>
-                <ListingCard
-                  id={l.id}
-                  title={l.title}
-                  priceMinor={l.price_minor}
-                  currency={currency}
-                  condition={l.condition}
-                  image={covers.get(l.id)?.url}
-                />
-              </li>
+              <li key={l.id}><ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} condition={l.condition} image={covers.get(l.id)?.url} /></li>
             ))}
           </ul>
         ) : (
-          <div className="rounded-[var(--radius-md)] border border-line bg-surface px-6 py-10 text-center">
-            <p className="font-medium">Nothing listed yet.</p>
-            <p className="mt-1 text-sm text-muted">Be the first — it only takes a minute.</p>
-            <Link
-              href="/sell"
-              className="mt-4 inline-flex min-h-10 items-center rounded-[var(--radius-md)] bg-brand px-5 text-sm font-medium text-white"
-            >
-              Post a listing
-            </Link>
+          <div className="max-w-md border-t border-line pt-6">
+            <p className="t-title">Nothing is listed yet.</p>
+            <p className="mt-2 text-muted">Listings from verified students at {uniName} will appear here. Yours can be the first.</p>
+            <Link href="/sell" className="btn btn-primary mt-6">Post a listing</Link>
           </div>
         )}
       </section>

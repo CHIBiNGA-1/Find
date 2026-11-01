@@ -47,7 +47,7 @@ export function ProfileForm({ displayName }: { displayName: string }) {
         </button>
         {saved && (
           <span role="status" className="text-sm text-muted animate-fade-in">
-            ✓ Saved
+            Saved
           </span>
         )}
       </div>
