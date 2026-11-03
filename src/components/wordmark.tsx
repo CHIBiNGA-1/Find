@@ -1,6 +1,5 @@
 /**
- * The f!nd wordmark. The "!" is a highlighter mark: a yellow block with ink inside, so it reads
- * on white and on cobalt alike. Live text, so it stays crisp at any size; screen readers hear "find".
+ * The f!nd wordmark. The punctuation mark is a restrained signature detail, not a competing accent. Live text, so it stays crisp at any size; screen readers hear "find".
  */
 export function Wordmark({ className = "" }: { className?: string }) {
   return (

@@ -52,7 +52,12 @@ export async function deleteAccount(confirmation: string): Promise<{ error?: str
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  await removeStoredFiles(supabase, user.id);   // best effort; see helper
+  try {
+    await removeStoredFiles(supabase, user.id);
+  } catch (error) {
+    console.error("[deleteAccount] storage cleanup failed", error instanceof Error ? error.message : "unknown");
+    return { error: "We couldn't safely remove all of your uploaded files. Your account has not been deleted. Please try again." };
+  }
 
   const { error } = await supabase.rpc("delete_own_account");
   if (error) {
@@ -66,26 +71,46 @@ export async function deleteAccount(confirmation: string): Promise<{ error?: str
 
 type Client = Awaited<ReturnType<typeof createClient>>;
 
-/** Lists every object under `prefix` (two folder levels) and removes it. Failures are tolerated:
- *  a leftover file is less harmful than blocking a user's right to delete their account. */
-async function removeUnder(supabase: Client, bucket: string, prefix: string) {
-  const { data } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
-  const paths: string[] = [];
-  for (const entry of data ?? []) {
-    if (entry.id) { paths.push(`${prefix}/${entry.name}`); continue; }          // a file
-    const { data: inner } = await supabase.storage.from(bucket).list(`${prefix}/${entry.name}`, { limit: 1000 });
-    for (const f of inner ?? []) if (f.id) paths.push(`${prefix}/${entry.name}/${f.name}`);
+/** Remove every object below a storage prefix, including arbitrarily nested folders.
+ *  Listing is paginated and errors are surfaced so account deletion never reports
+ *  success while leaving user-uploaded content behind. */
+async function listAll(supabase: Client, bucket: string, prefix: string) {
+  const entries: Array<{ name: string; id: string | null }> = [];
+  const pageSize = 100;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.storage.from(bucket).list(prefix, {
+      limit: pageSize,
+      offset,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error) throw error;
+    entries.push(...(data ?? []).map((entry) => ({ name: entry.name, id: entry.id ?? null })));
+    if (!data || data.length < pageSize) break;
   }
-  if (paths.length) await supabase.storage.from(bucket).remove(paths);
+  return entries;
 }
 
-async function removeStoredFiles(supabase: Client, userId: string) {
-  try {
-    await removeUnder(supabase, "listing-images", userId);            // {user}/{listing}/{file}
-    await removeUnder(supabase, "lostfound-images", userId);          // {user}/{file}
-    const { data: convs } = await supabase.from("conversations").select("id");
-    for (const c of convs ?? []) await removeUnder(supabase, "message-images", `${c.id}/${userId}`);   // {conversation}/{user}/{file}
-  } catch (e) {
-    console.error("[deleteAccount] file cleanup failed", e instanceof Error ? e.message : "unknown");
+async function removeUnder(supabase: Client, bucket: string, prefix: string): Promise<void> {
+  const entries = await listAll(supabase, bucket, prefix);
+  const paths: string[] = [];
+  for (const entry of entries) {
+    const path = `${prefix}/${entry.name}`;
+    if (entry.id) paths.push(path);
+    else await removeUnder(supabase, bucket, path);
+  }
+  for (let index = 0; index < paths.length; index += 100) {
+    const { error } = await supabase.storage.from(bucket).remove(paths.slice(index, index + 100));
+    if (error) throw error;
+  }
+}
+
+async function removeStoredFiles(supabase: Client, userId: string): Promise<void> {
+  await removeUnder(supabase, "listing-images", userId);   // {user}/{listing}/{file}
+  await removeUnder(supabase, "lostfound-images", userId); // {user}/{file}
+
+  const { data: conversations, error } = await supabase.from("conversations").select("id");
+  if (error) throw error;
+  for (const conversation of conversations ?? []) {
+    await removeUnder(supabase, "message-images", `${conversation.id}/${userId}`);
   }
 }

@@ -32,7 +32,7 @@ supabase start
 supabase db reset   # applies migrations + seed.sql from scratch
 ```
 
-Migrations run in numeric order (`0001_foundation.sql` … `0007_account_deletion.sql`).
+Migrations run in numeric order (`0001_foundation.sql` … `0010_account_deletion_exchange_cleanup.sql`). Apply all migrations with `supabase db push`; do not cherry-pick individual files.
 
 ### 1.3 Required extensions
 

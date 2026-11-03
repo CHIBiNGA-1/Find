@@ -2,14 +2,15 @@
 
 University marketplace and campus community PWA. Next.js (App Router) + Supabase.
 
-## Status (Phase 1, in progress)
-Done: strict TypeScript config, design tokens, fonts (Inter + Newsreader via next/font), PWA manifest, security headers, migration 0001 (universities, profiles, memberships, categories, listings, listing_images, RLS, status-transition trigger).
-Slice 5 added: exchange records (seller records, buyer confirms, needs a real enquiry), transaction-linked reviews (one per reviewer per exchange, via SECURITY DEFINER functions only), reputation shown only when reviews exist, public profile page, review disputes, moderator console (membership approvals, report actions, audit log), message-report excerpts so moderators never browse private chats (migration 0006). Known limit: two colluding accounts can still fake an exchange; the enquiry, confirmation and one-exchange-per-listing rules make it costly, not impossible.
-Slice 4 added: Requests board (expiry enforced by RLS, respond via messaging) and Lost and found (campus area only, ID-number guard, private photos, resolve flow, reuse of messaging) with migration 0005. Not yet: exchange records and reviews, moderator UI, community feed.
-Slice 3 added: two-party conversations tied to listings (start_conversation), realtime messages with durable storage, idempotent retry (client_id), reconnect catch-up, unread counts, image sharing (private bucket), block/unblock, reporting (derives university server-side), message rate limit (migration 0004). Not yet: read receipts, moderator UI to action reports, push notifications.
-Slice 2 added: listings (create, draft, edit, publish, sold/archive), private image storage with client-side compression and retry, keyset-paginated search with typo tolerance, listing detail, saved items, seller dashboard (migration 0003). Not yet: photo reordering, price sorting, messaging (so no Contact button yet), reporting.
-Slice 1 added: email sign-in/sign-up, onboarding (university request), moderator review function (migration 0002), app shell with responsive nav. Not done: moderator review UI, rate limiting, service worker, image upload, RLS test suite, icons (see below).
-Nothing here has been built, run or tested yet.
+## Status (pre-release; not approved for production)
+
+The repository contains the initial marketplace, university membership and moderation flows, listing management, saved listings, search, two-party messaging, requests, lost-and-found, exchange-linked reviews, account settings, account deletion, PWA shell, and deployment/operations documentation.
+
+A prior engineering handoff records a successful production build and 54 passing unit tests on its original machine. Those results have **not** been independently reproduced in the current delivery environment. The current package has no installed `node_modules`; dependency installation timed out during this review, so this delivery has not been build- or test-verified here.
+
+The latest hardening change is migration `0010_account_deletion_exchange_cleanup.sql`, which removes exchange rows belonging to the account before profile deletion so the `ON DELETE RESTRICT` conversation reference does not block account deletion. Storage cleanup now fails closed, checks listing/removal errors, paginates storage listings, and traverses nested folders before the database deletion is attempted.
+
+**Do not deploy this repository to the public as a production service yet.** See `docs/PRODUCTION_READINESS_AUDIT.md` for verified findings, release blockers, and the exact checks still required.
 
 ## Setup
 1. `npm install`
@@ -18,7 +19,10 @@ Nothing here has been built, run or tested yet.
 4. `npm run dev`
 
 ## Known gaps to close before launch
-- Add PNG icons to `public/icons/` (192, 512, maskable-512).
-- Add a service worker (Serwist). It must never cache authenticated responses.
-- Membership verification is a moderator/server action by design; users can only request it.
-- Add a pgTAP suite proving cross-university isolation before any real data goes in.
+- Reproduce dependency installation, typecheck, unit tests and production build on a clean release environment.
+- Apply all migrations and run pgTAP against a disposable Supabase project.
+- Complete end-to-end, accessibility, responsive and security testing.
+- Configure and verify real production Auth, email, storage, monitoring, backups and deployment.
+- Implement or explicitly defer push notifications; the settings screen currently labels them unavailable.
+
+See `docs/PRODUCTION_READINESS_AUDIT.md` for the release decision and evidence.

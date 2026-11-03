@@ -16,12 +16,12 @@ values (
   'ZM',
   'ZMW',
   'Africa/Lusaka',
-  'email_domain',      -- or 'manual_review' or 'institutional_sso'
-  array['student.unza.zm', 'unza.zm']  -- email domains for email_domain strategy
+  'manual_review',    -- only implemented verification strategy in this release
+  array[]::text[]
 );
 ```
 
-> **Slugs are permanent.** Once set they appear in moderation audit logs. Choose carefully.
+> **Slugs are permanent.** Once set they appear in moderation audit logs. Choose carefully. Email-domain auto-verification and institutional SSO are not implemented; do not configure either strategy until those flows are built and tested.
 
 ---
 
@@ -109,14 +109,18 @@ update public.requests set status = 'closed' where id = '<request-uuid>' and sta
 
 ---
 
-## 6. Account Deletion (Admin-initiated)
+## 6. Account Deletion (User-initiated)
 
-For GDPR deletion requests you cannot handle through the UI:
+The supported self-service path is the in-app account deletion flow. For an exceptional administrator-assisted request, follow the same data-removal procedure only after verifying the request and recording the authorization. Do not directly delete the auth row without first removing storage objects and exchange records:
 
 ```sql
--- Anonymise and delete (mirrors what delete_own_account() does)
+-- Run only as a controlled, reviewed operation. The application migration
+-- 0010 first deletes exchange_records involving this user because their
+-- conversation FK uses ON DELETE RESTRICT.
+delete from public.exchange_records where seller_id = '<uuid>' or buyer_id = '<uuid>';
 update public.profiles set display_name = 'Deleted User', avatar_path = null where id = '<uuid>';
-delete from auth.users where id = '<uuid>';  -- cascades to profiles, memberships, listings, messages
+update public.university_memberships set status = 'suspended' where user_id = '<uuid>';
+delete from auth.users where id = '<uuid>'; -- dependent profile/content rows cascade
 ```
 
 ---
@@ -177,3 +181,8 @@ RLS on `public.messages` still filters what each subscribing client receives —
 If realtime disconnects spike, check:
 - Supabase Dashboard → Database → Replication — confirm `supabase_realtime` is enabled.
 - Client reconnect logic in `src/components/chat.tsx`.
+
+
+## Account deletion hardening
+
+Migration `0010_account_deletion_exchange_cleanup.sql` removes exchange records involving the account before deleting the auth user. This is required because exchange records restrict deletion of their associated conversations. The application also removes storage objects first and aborts account deletion if storage enumeration or removal fails. Validate this path against a disposable Supabase project containing listings, lost-and-found photos, message photos, conversations, exchanges and reviews before enabling public registration.

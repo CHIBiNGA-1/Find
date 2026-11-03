@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
     orientation: "portrait",
-    background_color: "#2a3cff",   // the launch splash: cobalt, then the app
-    theme_color: "#2a3cff",
+    background_color: "#145b46",   // the launch splash uses the primary brand tone
+    theme_color: "#145b46",
     categories: ["shopping", "education", "social"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

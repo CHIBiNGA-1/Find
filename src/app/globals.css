@@ -10,42 +10,42 @@
   --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-sans); /* legacy class name: now resolves to the display face */
 
-  --color-bg: #ffffff;
+  --color-bg: #fbfcfa;
   --color-surface: #ffffff;
-  --color-sunken: #f3f4fb;          /* image wells, quiet fills */
-  --color-ink: #0e1240;             /* deep indigo: all text */
-  --color-muted: #5a5f86;           /* 6.1:1 on white */
-  --color-line: #e3e5f2;
-  --color-line-strong: #c4c8e2;
-  --color-brand: #2a3cff;           /* cobalt, 6.5:1 with white */
-  --color-brand-strong: #1c2bd6;
-  --color-brand-tint: #e9ebff;
-  --color-hl: #ffe94a;              /* highlighter */
-  --color-success: #0b7a4b;
-  --color-danger: #d61f45;
-  --color-danger-tint: #ffe6eb;
+  --color-sunken: #f1f5f1;
+  --color-ink: #17251e;
+  --color-muted: #627168;
+  --color-line: #e3eae4;
+  --color-line-strong: #c9d6cc;
+  --color-brand: #145b46;
+  --color-brand-strong: #0e4938;
+  --color-brand-tint: #e8f2eb;
+  --color-hl: #e8d77b;
+  --color-success: #176b4b;
+  --color-danger: #bd334b;
+  --color-danger-tint: #fbe9ec;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
+  --radius-sm: 7px;
+  --radius-md: 13px;
   --radius-lg: 20px;
 }
 
 :root {
-  --space-gutter: clamp(16px, 4.5vw, 40px);
-  --width-content: 1200px;
-  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --space-gutter: clamp(18px, 4.2vw, 44px);
+  --width-content: 1240px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --bar-h: 4.25rem;                 /* mobile tab bar */
 }
 
 @layer base {
-  html { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  html { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   html, body { overscroll-behavior-y: none; }
   body { overflow-x: clip; -webkit-tap-highlight-color: transparent; }
   a, button, label, summary, [role="button"] { touch-action: manipulation; -webkit-touch-callout: none; }
   /* Interface chrome is not selectable text; content still is */
   header, nav, button, .btn, .chip, .pick, .tag, .pricetag, summary { -webkit-user-select: none; user-select: none; }
   img { -webkit-user-drag: none; }
-  h1, h2, h3 { font-weight: 700; font-stretch: 88%; letter-spacing: -0.015em; line-height: 1.1; text-wrap: balance; }
+  h1, h2, h3 { font-weight: 700; font-stretch: 88%; letter-spacing: -0.035em; line-height: 1.08; text-wrap: balance; }
   ::selection { background: var(--color-hl); color: var(--color-ink); }
   /* Highlighter focus: ink line plus a yellow halo reads on white and on cobalt */
   :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; box-shadow: 0 0 0 5px var(--color-hl); border-radius: 4px; }
@@ -65,7 +65,7 @@
   .t-meta { font-size: 0.875rem; color: var(--color-muted); }
 
   /* Controls: two button weights, one field. */
-  .btn { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border-radius: var(--radius-md); font-size: 1rem; font-weight: 650; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease), transform 120ms var(--ease); }
+  .btn { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 22px; border-radius: 11px; font-size: 0.9375rem; font-weight: 680; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease), transform 160ms var(--ease); }
   .btn:active { transform: translateY(1px); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-sm { min-height: 38px; padding: 0 14px; font-size: 0.875rem; }
@@ -83,7 +83,7 @@
   textarea.field { padding-top: 12px; padding-bottom: 12px; }
 
   /* Surfaces: flat. Structure comes from hairlines and spacing, not shadows. */
-  .card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 16px; }
+  .card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 16px; box-shadow: 0 2px 8px rgb(23 37 30 / 0.025); }
   .tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; font-size: 0.8125rem; font-weight: 650; background: var(--color-brand-tint); color: var(--color-brand-strong); }
   .tag-amber { background: #fff; color: var(--color-ink); box-shadow: inset 0 0 0 1.5px var(--color-ink); }
   .tag-blue { background: var(--color-ink); color: #fff; }
@@ -165,4 +165,41 @@
 /* Installed: no website furniture */
 @media (display-mode: standalone) {
   .web-only { display: none !important; }
+}
+
+
+/* Product refinement: quiet surfaces, confident type, and consistent touch feedback. */
+@layer components {
+  .field { box-shadow: 0 1px 2px rgb(23 37 30 / 0.025); }
+  .field:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 12%, transparent); }
+  .chip { background: #fff; }
+  .chip[aria-current="true"], .chip[aria-current="page"] { background: var(--color-brand); color: #fff; }
+  .pricetag { background: var(--color-hl); color: #273126; }
+  .card-link { transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease), transform 180ms var(--ease); }
+  .card-link:hover { box-shadow: 0 8px 24px rgb(23 37 30 / 0.07); transform: translateY(-1px); }
+  main { isolation: isolate; }
+}
+
+@layer components {
+  .home-intro {
+    background:
+      radial-gradient(ellipse at 91% 8%, color-mix(in srgb, var(--color-brand-tint) 82%, white) 0, transparent 42%),
+      linear-gradient(135deg, #fff 0%, #fbfdfb 72%, #f3f8f4 100%);
+  }
+  .home-intro::after {
+    content: "";
+    position: absolute;
+    width: 19rem;
+    height: 19rem;
+    right: -8rem;
+    bottom: -13rem;
+    border: 1px solid color-mix(in srgb, var(--color-brand) 12%, transparent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.8rem color-mix(in srgb, var(--color-brand) 3%, transparent), 0 0 0 3.8rem color-mix(in srgb, var(--color-brand) 2%, transparent);
+    pointer-events: none;
+  }
+  @media (max-width: 767px) {
+    .home-intro { border-radius: 1.15rem; }
+    .home-intro::after { width: 13rem; height: 13rem; right: -7rem; bottom: -9rem; }
+  }
 }

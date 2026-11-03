@@ -35,19 +35,26 @@ export default async function Home() {
 
   return (
     <main className="space-y-14 md:space-y-20">
-      <section aria-label="Search">
-        <h1 className="max-w-3xl text-[clamp(2.25rem,1rem+5vw,4.25rem)] font-extrabold leading-[0.95] [font-stretch:80%]">What do you need at {uniName}?</h1>
-        <form action="/explore" method="get" role="search" className="mt-6 flex max-w-2xl gap-2">
+      <section aria-label="Search" className="home-intro relative overflow-hidden rounded-[1.5rem] border border-line bg-white px-5 py-8 md:px-10 md:py-11">
+        <div className="home-intro-copy relative z-10 max-w-3xl">
+          <p className="mb-4 inline-flex items-center gap-2 text-[0.75rem] font-bold uppercase tracking-[0.14em] text-brand"><span className="inline-block size-2 rounded-full bg-brand" /> Your campus, in good company</p>
+          <h1 className="max-w-3xl text-[clamp(2.25rem,1rem+5vw,4.25rem)] font-extrabold leading-[0.95] [font-stretch:80%]">What do you need at {uniName}?</h1>
+          <p className="mt-4 max-w-xl text-[1rem] leading-relaxed text-muted md:text-[1.0625rem]">Find useful things, pass on what you no longer need, and connect with the people around you.</p>
+        </div>
+        <form action="/explore" method="get" role="search" className="relative z-10 mt-7 flex max-w-2xl gap-2">
           <label className="relative flex-1"><span className="sr-only">Search listings</span>
             <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
             <input name="q" type="search" placeholder="Textbooks, laptop, mini fridge" className="field !min-h-14 !pl-12 text-[1.0625rem]" /></label>
           <button className="btn btn-primary !min-h-14 px-7">Search</button>
         </form>
         {cats.data && cats.data.length > 0 && (
-          <ul className="no-scrollbar -mx-[var(--space-gutter)] mt-5 flex gap-2 overflow-x-auto px-[var(--space-gutter)] py-1">
+          <div className="relative z-10 mt-7">
+          <p className="mb-3 text-[0.8125rem] font-semibold text-muted">Explore popular categories</p>
+          <ul className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-1">
             {cats.data.map((c) => (
               <li key={c.id} className="shrink-0"><Link href={`/explore?cat=${c.id}`} className="chip"><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={18} />{c.name}</Link></li>))}
-          </ul>)}
+          </ul>
+          </div>)}
       </section>
 
       <InstallPrompt className="md:hidden" />
