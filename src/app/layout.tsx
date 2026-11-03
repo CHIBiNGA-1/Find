@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource-variable/inter/index.css";
-import "@fontsource/newsreader/500.css";
+import "@fontsource-variable/bricolage-grotesque/standard.css";
 import { ServiceWorkerRegistration } from "@/components/sw-registration";
 import "./globals.css";
-
 
 export const metadata: Metadata = {
   title: { default: "f!nd", template: "%s · f!nd" },
@@ -13,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f6b4f",
+  themeColor: "#2a3cff",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -29,4 +27,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

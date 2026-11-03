@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { compress } from "@/lib/image";
+import { Icon } from "@/components/icons";
 import { markRead, sendMessage } from "@/app/(app)/messages/actions";
 
 export type Msg = { id: string; client_id: string; sender_id: string; body: string; image_path: string | null; created_at: string; state?: "sending" | "failed" };
@@ -11,7 +12,7 @@ function ChatImage({ path }: { path: string }) {
   const [url, setUrl] = useState<string>();
   useEffect(() => { void createClient().storage.from("message-images").createSignedUrl(path, 3600).then((r) => setUrl(r.data?.signedUrl)); }, [path]);
   // eslint-disable-next-line @next/next/no-img-element
-  return url ? <img src={url} alt="Shared photo" className="mt-1 max-h-64 rounded-[var(--radius-sm)]" /> : <span className="text-xs">Loading photo…</span>;
+  return url ? <img src={url} alt="Shared photo" className="my-1 max-h-64 rounded-[var(--radius-md)]" /> : <span className="text-xs">Loading photo…</span>;
 }
 
 export function Chat({ conversationId, me, initial, canSend }: { conversationId: string; me: string; initial: Msg[]; canSend: boolean }) {
@@ -75,37 +76,36 @@ export function Chat({ conversationId, me, initial, canSend }: { conversationId:
 
   return (
     <div className="flex flex-col">
-      {!online && <p role="status" className="mb-2 rounded bg-surface p-2 text-sm">You're offline. Messages will fail until you reconnect; you can retry them.</p>}
-      <ul className="space-y-2" aria-live="polite" aria-label="Messages">
+      {!online && <p role="status" className="notice mb-3">You&rsquo;re offline. Messages will fail until you reconnect; you can retry them.</p>}
+      <ul className="space-y-1.5" aria-live="polite" aria-label="Messages">
         {msgs.map((m) => {
           const mine = m.sender_id === me;
           return (
             <li key={m.client_id} className={`flex ${mine ? "justify-end" : ""}`}>
-              <div className={`max-w-[80%] rounded-[var(--radius-lg)] px-3 py-2 ${mine ? "bg-brand text-white" : "border border-line bg-surface"}`}>
+              <div className={`max-w-[82%] px-3.5 py-2 md:max-w-[70%] ${mine ? "rounded-[18px] rounded-br-[4px] bg-brand text-white" : "rounded-[18px] rounded-bl-[4px] bg-sunken text-ink"}`}>
                 {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
                 {m.image_path && <ChatImage path={m.image_path} />}
-                <p className="mt-1 text-xs opacity-80">
+                <p className={`mt-0.5 flex items-center gap-2 text-[0.6875rem] ${mine ? "text-white/80" : "text-muted"}`}>
                   <time dateTime={m.created_at}>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
-                  {mine && <> · {m.state === "sending" ? "Sending…" : m.state === "failed" ? "Not sent" : "Sent"}</>}
-                  {m.state === "failed" && <button type="button" onClick={() => void deliver(m)} className="ml-2 min-h-8 underline">Retry</button>}
+                  {mine && <span>{m.state === "sending" ? "Sending…" : m.state === "failed" ? "Not sent" : "Sent"}</span>}
+                  {m.state === "failed" && <button type="button" onClick={() => void deliver(m)} className="min-h-8 font-bold underline">Retry</button>}
                 </p>
               </div>
             </li>);
         })}
       </ul>
       <div ref={bottom} />
-      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-sm font-medium text-danger">{error}</p>}
       {canSend ? (
         <form onSubmit={(e) => { e.preventDefault(); const t = text.trim(); if (t) { queue(t, null); setText(""); } }}
-          className="sticky bottom-16 mt-4 flex gap-2 bg-bg py-2 pb-safe md:bottom-0">
-          <label className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-line bg-surface" title="Send a photo">
-            <span className="sr-only">Send a photo</span><span aria-hidden="true">+</span>
+          className="sticky bottom-[calc(var(--bar-h)+env(safe-area-inset-bottom))] mt-4 flex items-center gap-2 border-t border-line bg-white py-3 md:bottom-0">
+          <label className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full text-ink shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]" title="Send a photo">
+            <span className="sr-only">Send a photo</span><Icon name="plus" size={22} />
             <input type="file" accept="image/*" className="sr-only" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>
-          <input value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} aria-label="Message" placeholder="Write a message"
-            className="min-h-11 flex-1 rounded-[var(--radius-md)] border border-line bg-surface px-3" />
-          <button className="min-h-11 rounded-[var(--radius-md)] bg-brand px-4 font-medium text-white">Send</button>
+          <input value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} aria-label="Message" placeholder="Write a message" className="field !rounded-full flex-1" />
+          <button className="btn btn-primary !rounded-full">Send</button>
         </form>
-      ) : <p className="mt-4 text-sm text-muted">You can't send messages in this conversation.</p>}
+      ) : <p className="notice mt-4">You can&rsquo;t send messages in this conversation.</p>}
     </div>
   );
 }

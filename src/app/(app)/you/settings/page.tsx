@@ -14,20 +14,20 @@ export default async function SettingsPage() {
 
   return (
     <main className="max-w-xl">
-      <h1 className="font-serif text-3xl tracking-tight">Settings</h1>
+      <h1 className="t-page">Settings</h1>
 
       {/* Profile */}
       <section className="mt-8">
-        <h2 className="font-semibold text-lg">Profile</h2>
-        <p className="mt-1 text-sm text-muted">
+        <h2 className="text-[1.75rem]">Profile</h2>
+        <p className="t-meta mt-1">
           Your display name is visible to other verified members of the university.
         </p>
         <ProfileForm displayName={profile?.display_name ?? ""} />
       </section>
 
       {/* Notifications placeholder */}
-      <section className="mt-10 rounded-[var(--radius-md)] border border-line bg-surface p-4">
-        <h2 className="font-semibold">Push notifications</h2>
+      <section className="notice mt-10">
+        <h2 className="text-[1.25rem]">Push notifications</h2>
         <p className="mt-1 text-sm text-muted">
           Push notifications aren&apos;t available yet — we&apos;ll let you know when they arrive.
         </p>
@@ -35,14 +35,14 @@ export default async function SettingsPage() {
 
       {/* Danger zone */}
       <section className="mt-10">
-        <h2 className="font-semibold text-danger">Danger zone</h2>
+        <h2 className="text-[1.75rem] text-danger">Danger zone</h2>
         <p className="mt-1 text-sm text-muted">
           Permanently delete your account and all associated data.
         </p>
         <div className="mt-3">
           <Link
             href="/you/settings/danger"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] border border-danger px-4 text-sm font-medium text-danger"
+            className="btn btn-danger-quiet"
           >
             Delete account
           </Link>

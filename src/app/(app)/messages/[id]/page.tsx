@@ -28,23 +28,25 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
   const lastOther = [...initial].reverse().find((m) => m.sender_id !== userId);
   return (
     <div>
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
-        <div>
-          <Link href="/messages" className="text-sm text-muted md:hidden">Back to messages</Link>
-          <h2 className="font-semibold">{other?.display_name ?? "Student"}</h2>
-          {req && <Link href={`/requests/${req.id}`} className="text-sm underline">Request: {req.title}</Link>}
-          {lf && <Link href={`/lost-found/${lf.id}`} className="text-sm underline">Lost and found: {lf.title}</Link>}
-          {listing && <Link href={`/listing/${listing.id}`} className="text-sm underline">{listing.title} · {formatMoney(listing.price_minor, listing.currency_code)}{listing.status !== "active" ? ` (${listing.status})` : ""}</Link>}
-        </div>
-        <div className="flex items-center gap-3">
-          {lastOther && <ReportDialog type="message" targetId={lastOther.id} label="Report last message" />}
-          <ReportDialog type="user" targetId={otherId} label="Report user" />
-          {blocked
-            ? <form action={unblockUser.bind(null, otherId, id)}><button className="min-h-9 text-sm underline">Unblock</button></form>
-            : <form action={blockUser.bind(null, otherId, id)}><button className="min-h-9 text-sm underline">Block</button></form>}
+      <header className="mb-4 border-b border-line pb-4">
+        <Link href="/messages" className="link mb-2 inline-block text-sm font-semibold md:hidden">Back to messages</Link>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-[1.75rem] [font-stretch:80%]">{other?.display_name ?? "Student"}</h2>
+            {req && <Link href={`/requests/${req.id}`} className="link text-sm">Request: {req.title}</Link>}
+            {lf && <Link href={`/lost-found/${lf.id}`} className="link text-sm">Lost and found: {lf.title}</Link>}
+            {listing && <Link href={`/listing/${listing.id}`} className="link text-sm">{listing.title}, {formatMoney(listing.price_minor, listing.currency_code)}{listing.status !== "active" ? ` (${listing.status})` : ""}</Link>}
+          </div>
+          <div className="flex items-center gap-4">
+            {lastOther && <ReportDialog type="message" targetId={lastOther.id} label="Report last message" />}
+            <ReportDialog type="user" targetId={otherId} label="Report user" />
+            {blocked
+              ? <form action={unblockUser.bind(null, otherId, id)}><button className="min-h-9 text-sm font-semibold text-muted underline">Unblock</button></form>
+              : <form action={blockUser.bind(null, otherId, id)}><button className="min-h-9 text-sm font-semibold text-muted underline">Block</button></form>}
+          </div>
         </div>
       </header>
-      <p className="mb-3 text-xs text-muted">Messaging isn't an agreement to trade. Meet in a public place on campus and keep your phone number private until you're comfortable sharing it.</p>
+      <p className="notice mb-4 !text-[0.8125rem]">Messaging isn&rsquo;t an agreement to trade. Meet in a public place on campus and keep your phone number private until you&rsquo;re comfortable sharing it.</p>
       <Chat key={id} conversationId={id} me={userId} initial={initial} canSend={!blocked} />
     </div>
   );

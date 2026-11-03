@@ -8,21 +8,21 @@ const input = "field mt-1";
 export function AuthForm({ action, mode, next }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   const err = (k: string) => state.fieldErrors?.[k]?.[0];
-  if (state.ok) return <p role="status" className="rounded-[var(--radius-md)] border border-line bg-surface p-4">{state.message}</p>;
+  if (state.ok) return <p role="status" className="card p-5">{state.message}</p>;
   return (
     <form action={formAction} className="space-y-4" noValidate>
       {next && <input type="hidden" name="next" value={next} />}
       {mode === "sign-up" && (
-        <label className="block text-sm font-medium">Name
+        <label className="label">Name
           <input name="displayName" autoComplete="name" required aria-invalid={!!err("displayName")} aria-describedby="displayName-e" className={input} />
           <span id="displayName-e" className="text-danger">{err("displayName")}</span>
         </label>
       )}
-      <label className="block text-sm font-medium">Email
+      <label className="label">Email
         <input name="email" type="email" autoComplete="email" required aria-invalid={!!err("email")} aria-describedby="email-e" className={input} />
         <span id="email-e" className="text-danger">{err("email")}</span>
       </label>
-      <label className="block text-sm font-medium">Password
+      <label className="label">Password
         <input name="password" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} required aria-invalid={!!err("password")} aria-describedby="password-e" className={input} />
         <span id="password-e" className="text-danger">{err("password")}</span>
       </label>

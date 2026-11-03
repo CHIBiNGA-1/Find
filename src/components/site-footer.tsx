@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Wordmark } from "@/components/wordmark";
 
 export function SiteFooter() {
-  const link = "text-[0.9375rem] text-white/75 transition-colors hover:text-white";
+  const link = "text-[0.9375rem] font-medium text-muted transition-colors hover:text-ink";
   return (
-    <footer className="mt-20 bg-[var(--color-footer)] pb-28 text-white">
-      <div className="mx-auto flex max-w-[var(--width-content)] flex-col gap-8 px-[var(--space-gutter)] py-12 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-sm">
-          <p className="text-3xl"><Wordmark accent="text-[#e8b23a]" /></p>
-          <p className="mt-3 text-[0.9375rem] leading-relaxed text-white/70">A marketplace for the university community. Verification confirms membership, not conduct. Meet in public places; f!nd doesn&rsquo;t handle payments or guarantee any exchange.</p>
+    <footer className="mt-24 border-t border-line pb-[calc(var(--bar-h)+2rem)] md:pb-12">
+      <div className="wrap flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
+        <div className="max-w-md">
+          <p className="text-[2rem]"><Wordmark /></p>
+          <p className="t-meta mt-3 leading-relaxed">Verification confirms someone belongs to the university, not how they behave. Meet in public places. f!nd doesn&rsquo;t handle payments or guarantee any exchange.</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-8 gap-y-3 md:pt-2">
           <Link href="/explore" className={link}>Explore</Link><Link href="/requests" className={link}>Requests</Link>

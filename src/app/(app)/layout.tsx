@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
-import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
-import { Wordmark } from "@/components/wordmark";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div>
       <AppNav unread={total} />
-      <header className="mx-auto max-w-[var(--width-content)] px-[var(--space-gutter)] pt-6">
-        <Link href="/" aria-label="f!nd home" className="inline-block text-[1.75rem]"><Wordmark /></Link>
-      </header>
-      <div className="mx-auto max-w-[var(--width-content)] px-[var(--space-gutter)] pb-4 pt-8">{children}</div>
+      <div className="wrap pt-6 md:pt-10">{children}</div>
       <SiteFooter />
     </div>
   );

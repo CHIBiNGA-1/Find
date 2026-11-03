@@ -4,6 +4,7 @@ import { coverImages } from "@/lib/listings/queries";
 import { parseMinor } from "@/lib/money";
 import { CONDITIONS, CONDITION_LABEL } from "@/lib/listings/schema";
 import { ListingCard } from "@/components/listing-card";
+import { Icon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Explore" };
@@ -46,109 +47,69 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
   const hasFilters = !!(sp.q || sp.cat || sp.min || sp.max || conds.length);
   const selectedCat = categories?.find((c) => c.id === sp.cat);
 
-  const inputCls = "min-h-10 rounded-[var(--radius-md)] border border-line bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand";
+  const catHref = (id?: string) => {
+    const p = new URLSearchParams(qs); p.delete("cat"); if (id) p.set("cat", id);
+    const t = p.toString(); return t ? `/explore?${t}` : "/explore";
+  };
+  const advanced = !!(sp.min || sp.max || conds.length);
 
   return (
     <main>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-serif text-3xl tracking-tight">
-          {selectedCat ? selectedCat.name : "Explore"}
-        </h1>
-        {hasFilters && (
-          <Link href="/explore" className="text-sm text-muted hover:text-danger">
-            Clear filters
-          </Link>
-        )}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="text-[clamp(2rem,1.2rem+3vw,3.25rem)] font-extrabold leading-none [font-stretch:80%]">{selectedCat ? selectedCat.name : sp.q ? `Results for \u201c${sp.q}\u201d` : "Explore"}</h1>
+        {hasFilters && <Link href="/explore" className="link text-[0.9375rem] font-semibold">Clear filters</Link>}
       </div>
 
-      {/* Filter form */}
-      <form role="search" className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5" id="explore-filters">
-        {/* Search */}
-        <input
-          name="q"
-          type="search"
-          defaultValue={sp.q}
-          aria-label="Search listings"
-          placeholder="Search…"
-          className={`${inputCls} sm:col-span-2 lg:col-span-2`}
-        />
-        {/* Category */}
-        <select name="cat" defaultValue={sp.cat ?? ""} aria-label="Category" className={inputCls}>
-          <option value="">All categories</option>
-          {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        {/* Price range */}
-        <div className="flex gap-2">
-          <input name="min" inputMode="decimal" defaultValue={sp.min} aria-label="Min price" placeholder="Min" className={`${inputCls} w-full`} />
-          <input name="max" inputMode="decimal" defaultValue={sp.max} aria-label="Max price" placeholder="Max" className={`${inputCls} w-full`} />
+      <form role="search" id="explore-filters" className="mt-6">
+        {sp.cat && <input type="hidden" name="cat" value={sp.cat} />}
+        <div className="flex max-w-2xl gap-2">
+          <label className="relative flex-1"><span className="sr-only">Search listings</span>
+            <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+            <input name="q" type="search" defaultValue={sp.q} placeholder="Search listings" className="field !pl-12" /></label>
+          <button type="submit" className="btn btn-primary">Search</button>
         </div>
-        {/* Submit */}
-        <button type="submit" className="min-h-10 rounded-[var(--radius-md)] bg-brand px-4 text-sm font-medium text-white">
-          Search
-        </button>
-
-        {/* Condition checkboxes – full width row */}
-        <fieldset className="flex flex-wrap gap-3 sm:col-span-2 lg:col-span-5">
-          <legend className="sr-only">Condition</legend>
-          {CONDITIONS.map((c) => (
-            <label key={c} className="flex min-h-8 cursor-pointer items-center gap-1.5 text-sm">
-              <input type="checkbox" name="cond" value={c} defaultChecked={conds.includes(c)} className="accent-brand" />
-              {CONDITION_LABEL[c]}
-            </label>
-          ))}
-        </fieldset>
+        <details open={advanced} className="group mt-3">
+          <summary className="chip inline-flex cursor-pointer list-none [&::-webkit-details-marker]:hidden"><Icon name="sliders" size={18} />Price and condition</summary>
+          <div className="mt-4 grid max-w-2xl gap-5 rounded-[var(--radius-md)] bg-sunken p-5 sm:grid-cols-2">
+            <div><p className="mb-2 text-sm font-semibold">Price</p>
+              <div className="flex gap-2">
+                <input name="min" inputMode="decimal" defaultValue={sp.min} aria-label="Minimum price" placeholder="Min" className="field" />
+                <input name="max" inputMode="decimal" defaultValue={sp.max} aria-label="Maximum price" placeholder="Max" className="field" /></div></div>
+            <fieldset><legend className="mb-2 text-sm font-semibold">Condition</legend>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {CONDITIONS.map((c) => (
+                  <label key={c} className="flex min-h-8 cursor-pointer items-center gap-2 text-[0.9375rem]">
+                    <input type="checkbox" name="cond" value={c} defaultChecked={conds.includes(c)} className="size-5 accent-[var(--color-brand)]" />{CONDITION_LABEL[c]}</label>))}
+              </div></fieldset>
+            <div className="sm:col-span-2"><button type="submit" className="btn btn-ink btn-sm">Apply</button></div>
+          </div>
+        </details>
       </form>
 
-      {/* Results header */}
-      {!error && page.length > 0 && (
-        <p className="mt-5 text-sm text-muted">
-          Showing {page.length}{next ? "+" : ""} listing{page.length !== 1 ? "s" : ""}
-          {hasFilters && " matching your filters"}
-        </p>
-      )}
+      {categories && categories.length > 0 && (
+        <ul className="no-scrollbar -mx-[var(--space-gutter)] mt-5 flex gap-2 overflow-x-auto px-[var(--space-gutter)] py-1">
+          <li className="shrink-0"><Link href={catHref()} className="chip" aria-current={!sp.cat ? "true" : undefined}>All</Link></li>
+          {categories.map((c) => <li key={c.id} className="shrink-0"><Link href={catHref(c.id)} className="chip" aria-current={sp.cat === c.id ? "true" : undefined}>{c.name}</Link></li>)}
+        </ul>)}
 
-      {/* Errors / empty state */}
-      {error && (
-        <p role="alert" className="mt-6 text-danger text-sm">
-          Search isn&apos;t working right now. Try again in a moment.
-        </p>
-      )}
+      {error && <p role="alert" className="mt-8 font-medium text-danger">Search isn&rsquo;t working right now. Try again in a moment.</p>}
       {!error && !page.length && (
-        <div className="mt-10 rounded-[var(--radius-md)] border border-line bg-surface px-6 py-10 text-center">
-          <p className="font-medium">No listings match.</p>
-          <p className="mt-1 text-sm text-muted">Try fewer filters or a simpler search word.</p>
-          {hasFilters && (
-            <Link href="/explore" className="mt-4 inline-flex min-h-9 items-center rounded-[var(--radius-md)] border border-line px-4 text-sm">
-              Clear all filters
-            </Link>
-          )}
-        </div>
-      )}
+        <div className="mt-10 rounded-[var(--radius-lg)] bg-sunken px-6 py-12 text-center">
+          <p className="text-[1.5rem] font-bold [font-stretch:88%]">No listings match.</p>
+          <p className="t-meta mt-1">Try fewer filters or a simpler search word.</p>
+          {hasFilters && <Link href="/explore" className="btn btn-quiet mt-6">Clear all filters</Link>}
+        </div>)}
+      {!error && page.length > 0 && <p className="t-meta mt-6">{page.length}{next ? "+" : ""} listing{page.length !== 1 ? "s" : ""}</p>}
 
-      {/* Grid */}
-      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
         {page.map((l) => (
-          <li key={l.id}>
-            <ListingCard
-              id={l.id} title={l.title}
-              priceMinor={l.price_minor} currency={currency}
-              condition={l.condition} publishedAt={l.published_at} image={covers.get(l.id)?.url}
-            />
-          </li>
-        ))}
+          <li key={l.id}><ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} condition={l.condition} publishedAt={l.published_at} image={covers.get(l.id)?.url} /></li>))}
       </ul>
 
-      {/* Load more (keyset pagination) */}
       {next && (
-        <div className="mt-8 flex justify-center">
-          <Link
-            href={`/explore?${qs}&at=${encodeURIComponent(next.published_at!)}&after=${next.id}`}
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] border border-line bg-surface px-6 text-sm font-medium hover:bg-bg transition-colors"
-          >
-            Load more listings
-          </Link>
-        </div>
-      )}
+        <div className="mt-12 flex justify-center">
+          <Link href={`/explore?${qs}&at=${encodeURIComponent(next.published_at!)}&after=${next.id}`} className="btn btn-quiet">Load more listings</Link>
+        </div>)}
     </main>
   );
 }

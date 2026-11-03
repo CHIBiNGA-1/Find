@@ -16,6 +16,6 @@ export default async function EditListing({ params }: { params: Promise<{ id: st
   ]);
   const urls = await signedUrls((imgs ?? []).map((i) => i.storage_path));
   const images = (imgs ?? []).map((i) => ({ key: i.id, id: i.id, path: i.storage_path, preview: urls.get(i.storage_path) ?? "", status: "done" as const, w: i.width, h: i.height }));
-  return (<main><h1 className="mb-6 font-serif text-3xl tracking-tight">Edit listing</h1>
+  return (<main><h1 className="mb-6 t-page">Edit listing</h1>
     <ListingForm categories={categories ?? []} userId={userId} initial={{ id, title: l.title, description: l.description, price: (l.price_minor / 100).toFixed(2), condition: l.condition, categoryId: l.category_id ?? undefined, meeting: l.meeting_preferences ?? "", images }} /></main>);
 }

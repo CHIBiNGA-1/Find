@@ -1,6 +1,7 @@
 "use client";
 import { useOptimistic, useTransition } from "react";
 import { toggleSaved } from "@/app/(app)/sell/actions";
+import { Icon } from "@/components/icons";
 
 export function SaveButton({ listingId, saved }: { listingId: string; saved: boolean }) {
   const [optimistic, setOptimistic] = useOptimistic(saved);
@@ -9,7 +10,7 @@ export function SaveButton({ listingId, saved }: { listingId: string; saved: boo
     <button type="button" aria-pressed={optimistic}
       onClick={() => start(async () => { setOptimistic(!optimistic); await toggleSaved(listingId, !optimistic); })}
       className="btn btn-quiet">
-      {optimistic ? "Saved" : "Save"}
+      <Icon name="bookmark" size={18} filled={optimistic} />{optimistic ? "Saved" : "Save"}
     </button>
   );
 }

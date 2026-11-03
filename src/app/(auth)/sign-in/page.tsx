@@ -10,7 +10,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
   const { next, error } = await searchParams;
   return (
     <main className="mx-auto max-w-sm px-[var(--space-gutter)] py-16">
-      <p className="mb-6 text-4xl"><Wordmark /></p>
+      <p className="mb-8 text-[3rem] text-brand"><Wordmark /></p>
       <h1 className="t-title">Welcome back</h1>
       <p className="mb-6 mt-2 text-muted">Sign in to buy, sell and message students at the university.</p>
       {error === "link" && <p role="alert" className="mb-4 text-sm text-danger">That confirmation link has expired. Sign in, or create your account again.</p>}

@@ -15,7 +15,7 @@ export function ProfileForm({ displayName }: { displayName: string }) {
   return (
     <form ref={ref} action={action} className="mt-6 space-y-4 max-w-sm">
       <div>
-        <label htmlFor="display_name" className="block text-sm font-medium mb-1">
+        <label htmlFor="display_name" className="label mb-1">
           Display name
         </label>
         <input
@@ -26,7 +26,7 @@ export function ProfileForm({ displayName }: { displayName: string }) {
           minLength={2}
           maxLength={60}
           required
-          className="w-full min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+          className="field"
         />
         {state.fieldErrors?.display_name && (
           <p role="alert" className="mt-1 text-sm text-danger">
@@ -41,12 +41,12 @@ export function ProfileForm({ displayName }: { displayName: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="min-h-11 rounded-[var(--radius-md)] bg-brand px-5 font-medium text-white disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending ? "Saving…" : "Save changes"}
         </button>
         {saved && (
-          <span role="status" className="text-sm text-muted animate-fade-in">
+          <span role="status" className="text-sm text-muted">
             Saved
           </span>
         )}

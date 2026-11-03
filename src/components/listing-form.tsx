@@ -8,7 +8,7 @@ import { publishListing, registerImage, removeImage, saveListing } from "@/app/(
 
 type Img = { key: string; preview: string; status: "uploading" | "done" | "error"; id?: string; file?: Blob; w?: number; h?: number; path?: string };
 type Initial = { id?: string; title?: string; description?: string; price?: string; condition?: string; categoryId?: string; meeting?: string; images?: Img[] };
-const field = "mt-1 block w-full min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-3 text-base aria-[invalid=true]:border-danger";
+const field = "field mt-1";
 
 export function ListingForm({ categories, userId, initial = {} }: { categories: { id: string; name: string }[]; userId: string; initial?: Initial }) {
   const router = useRouter();
@@ -59,49 +59,49 @@ export function ListingForm({ categories, userId, initial = {} }: { categories: 
   const busy = images.some((i) => i.status === "uploading");
 
   return (
-    <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="max-w-xl space-y-5" noValidate>
-      <fieldset className={preview ? "hidden" : "space-y-5"}>
-        <label className="block text-sm font-medium">Title
-          <input name="title" defaultValue={initial.title} className={field} aria-invalid={!!err("title")} /><span className="text-danger">{err("title")}</span></label>
-        <label className="block text-sm font-medium">Price (ZMW)
-          <input name="price" inputMode="decimal" defaultValue={initial.price} className={field} aria-invalid={!!err("price")} /><span className="text-danger">{err("price")}</span></label>
-        <label className="block text-sm font-medium">Category
-          <select name="categoryId" defaultValue={initial.categoryId ?? ""} className={field}><option value="" disabled>Choose…</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select><span className="text-danger">{err("categoryId")}</span></label>
-        <label className="block text-sm font-medium">Condition
-          <select name="condition" defaultValue={initial.condition ?? ""} className={field}><option value="" disabled>Choose…</option>{CONDITIONS.map((c) => <option key={c} value={c}>{CONDITION_LABEL[c]}</option>)}</select><span className="text-danger">{err("condition")}</span></label>
-        <label className="block text-sm font-medium">Description
-          <textarea name="description" rows={5} defaultValue={initial.description} className={field} /><span className="text-danger">{err("description")}</span></label>
-        <label className="block text-sm font-medium">Where can you meet? <span className="font-normal text-muted">(public campus spots are safest)</span>
+    <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="max-w-xl space-y-6" noValidate>
+      <fieldset className={preview ? "hidden" : "space-y-6"}>
+        <label className="label">Title
+          <input name="title" defaultValue={initial.title} className={field} aria-invalid={!!err("title")} /><span className="err">{err("title")}</span></label>
+        <label className="label">Price (ZMW)
+          <input name="price" inputMode="decimal" defaultValue={initial.price} className={field} aria-invalid={!!err("price")} /><span className="err">{err("price")}</span></label>
+        <label className="label">Category
+          <select name="categoryId" defaultValue={initial.categoryId ?? ""} className={field}><option value="" disabled>Choose…</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select><span className="err">{err("categoryId")}</span></label>
+        <label className="label">Condition
+          <select name="condition" defaultValue={initial.condition ?? ""} className={field}><option value="" disabled>Choose…</option>{CONDITIONS.map((c) => <option key={c} value={c}>{CONDITION_LABEL[c]}</option>)}</select><span className="err">{err("condition")}</span></label>
+        <label className="label">Description
+          <textarea name="description" rows={5} defaultValue={initial.description} className={field} /><span className="err">{err("description")}</span></label>
+        <label className="label">Where can you meet? <span className="font-normal text-muted">(public campus spots are safest)</span>
           <input name="meetingPreferences" defaultValue={initial.meeting} className={field} /></label>
         <div>
-          <p className="text-sm font-medium">Photos <span className="font-normal text-muted">(up to 8, the first is the cover)</span></p>
-          <ul className="mt-2 grid grid-cols-3 gap-2">
+          <p className="label">Photos <span className="font-normal text-muted">(up to 8, the first is the cover)</span></p>
+          <ul className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
             {images.map((i) => (
-              <li key={i.key} className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-line bg-bg">
+              <li key={i.key} className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-sunken">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={i.preview} alt="Listing photo" className="size-full object-cover" />
-                <span role="status" className="absolute inset-x-0 bottom-0 bg-surface/90 px-1 text-center text-xs">{i.status === "uploading" ? "Uploading…" : i.status === "error" ? "Failed" : "Ready"}</span>
+                <span role="status" className="absolute inset-x-0 bottom-0 bg-ink/85 px-1 py-0.5 text-center text-xs font-semibold text-white">{i.status === "uploading" ? "Uploading…" : i.status === "error" ? "Failed" : "Ready"}</span>
                 <div className="absolute right-1 top-1 flex gap-1">
-                  {i.status === "error" && i.file && <button type="button" onClick={() => id && upload(i, id, images.indexOf(i))} className="min-h-8 rounded bg-surface px-2 text-xs">Retry</button>}
-                  <button type="button" aria-label="Remove photo" onClick={() => remove(i)} className="min-h-8 rounded bg-surface px-2 text-xs">Remove</button>
+                  {i.status === "error" && i.file && <button type="button" onClick={() => id && upload(i, id, images.indexOf(i))} className="min-h-8 rounded-full bg-white px-3 text-xs font-bold">Retry</button>}
+                  <button type="button" aria-label="Remove photo" onClick={() => remove(i)} className="min-h-8 rounded-full bg-white px-3 text-xs font-bold">Remove</button>
                 </div>
               </li>))}
           </ul>
-          {images.length < 8 && <label className="mt-2 inline-flex min-h-11 cursor-pointer items-center rounded-[var(--radius-md)] border border-line bg-surface px-4 text-sm font-medium">Add photos
+          {images.length < 8 && <label className="btn btn-quiet mt-3 cursor-pointer">Add photos
             <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { void addFiles(e.target.files); e.target.value = ""; }} /></label>}
         </div>
       </fieldset>
       {preview && (
-        <section aria-label="Preview" className="rounded-[var(--radius-md)] border border-line bg-surface p-4">
-          <p className="price text-xl font-semibold">ZMW {values().price}</p><p className="font-medium">{values().title}</p>
-          <p className="mt-2 whitespace-pre-line text-sm text-muted">{values().description}</p>
+        <section aria-label="Preview" className="card p-5">
+          <p className="pricetag">ZMW {values().price}</p><p className="mt-3 text-[1.5rem] font-bold [font-stretch:85%]">{values().title}</p>
+          <p className="mt-2 whitespace-pre-line text-muted">{values().description}</p>
         </section>)}
-      {message && <p role="alert" className="text-sm text-danger">{message}</p>}
+      {message && <p role="alert" className="text-sm font-medium text-danger">{message}</p>}
       <div className="flex flex-wrap gap-3">
-        <button type="button" className="min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-4" onClick={() => setPreview((p) => !p)}>{preview ? "Keep editing" : "Preview"}</button>
-        <button type="button" disabled={pending || busy} className="min-h-11 rounded-[var(--radius-md)] border border-line bg-surface px-4 disabled:opacity-60"
+        <button type="button" className="btn btn-quiet" onClick={() => setPreview((p) => !p)}>{preview ? "Keep editing" : "Preview"}</button>
+        <button type="button" disabled={pending || busy} className="btn btn-quiet"
           onClick={() => start(async () => { const r = await ensureDraft(); if (r) setMessage("Draft saved."); })}>Save draft</button>
-        <button type="button" disabled={pending || busy} className="min-h-11 rounded-[var(--radius-md)] bg-brand px-4 font-medium text-white disabled:opacity-60"
+        <button type="button" disabled={pending || busy} className="btn btn-primary"
           onClick={() => start(async () => {
             const lid = await ensureDraft(); if (!lid) return;
             const r = await publishListing(lid);

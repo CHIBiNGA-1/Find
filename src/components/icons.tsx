@@ -20,13 +20,15 @@ const PATHS = {
   plus: "M12 5v14M5 12h14",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0",
   arrow: "M5 12h14M13 6l6 6-6 6",
+  bookmark: "M6 4h12v17l-6-4-6 4z",
+  sliders: "M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6",
 } as const;
 export type IconName = keyof typeof PATHS;
 
 /** One icon set, one stroke weight. Decorative by default; pass `label` when it carries meaning. */
-export function Icon({ name, size = 20, className = "", label }: { name: IconName; size?: number; className?: string; label?: string }) {
+export function Icon({ name, size = 20, className = "", label, filled = false }: { name: IconName; size?: number; className?: string; label?: string; filled?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
       className={className} {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}><path d={PATHS[name]} /></svg>
   );
 }
