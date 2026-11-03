@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { AppFrame } from "@/components/app-frame";
+import { PullToRefresh } from "@/components/pull-to-refresh";
+import { ConnectionBanner } from "@/components/connection-banner";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +19,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div>
       <AppNav unread={total} />
-      <div className="wrap pt-6 md:pt-10">{children}</div>
+      <ConnectionBanner />
+      <PullToRefresh />
+      <AppFrame>{children}</AppFrame>
       <SiteFooter />
     </div>
   );

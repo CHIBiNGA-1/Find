@@ -9,7 +9,7 @@ type Props = { id: string; title: string; priceMinor: number; currency: string; 
 export function ListingCard({ id, title, priceMinor, currency, condition, image, publishedAt, sold }: Props) {
   const cond = condition ? CONDITION_LABEL[condition as (typeof CONDITIONS)[number]] ?? condition : null;
   return (
-    <Link href={`/listing/${id}`} className="group block">
+    <Link href={`/listing/${id}`} className="press group block">
       <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-sunken">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element

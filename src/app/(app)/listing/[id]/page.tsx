@@ -45,8 +45,8 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         <p className="mt-5"><span className="pricetag pricetag-lg">{formatMoney(l.price_minor, l.currency_code)}</span></p>
 
         {!mine && (
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            {l.status === "active" && <form action={startConversation.bind(null, id)} className="flex-1 sm:flex-none"><button className="btn btn-primary w-full sm:w-auto sm:min-w-52">Message seller</button></form>}
+          <div className="mt-7 hidden flex-wrap items-center gap-3 md:flex">
+            {l.status === "active" && <form action={startConversation.bind(null, id)}><button className="btn btn-primary min-w-52">Message seller</button></form>}
             <SaveButton listingId={id} saved={!!saved} />
           </div>)}
         {contact === "failed" && <p role="alert" className="mt-4 text-sm font-medium text-danger">We couldn&rsquo;t start that conversation. The listing may be unavailable, or messaging between you and this seller isn&rsquo;t possible.</p>}
@@ -68,6 +68,13 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         </div>
         {!mine && <div className="mt-5"><ReportDialog type="listing" targetId={id} label="Report listing" /></div>}
       </div>
+      {!mine && (
+        <div className="web-only-none fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-line bg-white px-[var(--space-gutter)] pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
+          <SaveButton listingId={id} saved={!!saved} iconOnly />
+          {l.status === "active"
+            ? <form action={startConversation.bind(null, id)} className="flex-1"><button className="btn btn-primary w-full">Message seller</button></form>
+            : <p className="t-meta flex-1 text-center">{unavailable}</p>}
+        </div>)}
     </main>
   );
 }

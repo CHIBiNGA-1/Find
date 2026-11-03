@@ -34,7 +34,7 @@ export default async function Requests({ searchParams }: { searchParams: Promise
         </div>)}
       <ul className="mt-6 divide-y divide-line border-y border-line">
         {data?.map((r) => (
-          <li key={r.id}><Link href={`/requests/${r.id}`} className="flex items-center justify-between gap-4 py-4 hover:bg-sunken sm:px-3">
+          <li key={r.id}><Link href={`/requests/${r.id}`} className="flex items-center justify-between gap-4 py-4 hover:bg-sunken active:bg-sunken sm:px-3">
             <span className="min-w-0"><span className="block truncate text-[1.0625rem] font-semibold">{r.title}</span>
               <span className="t-meta block">Posted {timeAgo(r.created_at)}, open until {new Date(r.expires_at).toLocaleDateString()}</span></span>
             {r.budget_minor != null && <span className="pricetag shrink-0">{formatMoney(r.budget_minor, r.currency_code)}</span>}

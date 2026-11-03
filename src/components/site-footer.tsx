@@ -4,7 +4,7 @@ import { Wordmark } from "@/components/wordmark";
 export function SiteFooter() {
   const link = "text-[0.9375rem] font-medium text-muted transition-colors hover:text-ink";
   return (
-    <footer className="mt-24 border-t border-line pb-[calc(var(--bar-h)+2rem)] md:pb-12">
+    <footer className="web-only mt-24 hidden border-t border-line pb-12 md:block">
       <div className="wrap flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-md">
           <p className="text-[2rem]"><Wordmark /></p>

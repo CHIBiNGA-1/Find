@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { compress } from "@/lib/image";
 import { Icon } from "@/components/icons";
+import { tap } from "@/lib/haptics";
 import { markRead, sendMessage } from "@/app/(app)/messages/actions";
 
 export type Msg = { id: string; client_id: string; sender_id: string; body: string; image_path: string | null; created_at: string; state?: "sending" | "failed" };
@@ -75,9 +76,9 @@ export function Chat({ conversationId, me, initial, canSend }: { conversationId:
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-[calc(100dvh-15rem)] flex-col md:min-h-0">
       {!online && <p role="status" className="notice mb-3">You&rsquo;re offline. Messages will fail until you reconnect; you can retry them.</p>}
-      <ul className="space-y-1.5" aria-live="polite" aria-label="Messages">
+      <ul className="space-y-1.5 pt-2" aria-live="polite" aria-label="Messages">
         {msgs.map((m) => {
           const mine = m.sender_id === me;
           return (
@@ -97,8 +98,8 @@ export function Chat({ conversationId, me, initial, canSend }: { conversationId:
       <div ref={bottom} />
       {error && <p role="alert" className="mt-3 text-sm font-medium text-danger">{error}</p>}
       {canSend ? (
-        <form onSubmit={(e) => { e.preventDefault(); const t = text.trim(); if (t) { queue(t, null); setText(""); } }}
-          className="sticky bottom-[calc(var(--bar-h)+env(safe-area-inset-bottom))] mt-4 flex items-center gap-2 border-t border-line bg-white py-3 md:bottom-0">
+        <form onSubmit={(e) => { e.preventDefault(); const t = text.trim(); if (t) { tap(); queue(t, null); setText(""); } }}
+          className="sticky bottom-0 mt-auto flex items-center gap-2 border-t border-line bg-white pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
           <label className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full text-ink shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]" title="Send a photo">
             <span className="sr-only">Send a photo</span><Icon name="plus" size={22} />
             <input type="file" accept="image/*" className="sr-only" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>

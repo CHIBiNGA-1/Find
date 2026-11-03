@@ -16,7 +16,7 @@ export default async function LostFound({ searchParams }: { searchParams: Promis
   const open = data?.filter((d) => d.status === "open") ?? [], done = data?.filter((d) => d.status === "resolved") ?? [];
   const tab = (k: string | undefined, label: string) => <Link href={k ? `/lost-found?kind=${k}` : "/lost-found"} className="chip" aria-current={kind === k || (!kind && !k) ? "true" : undefined}>{label}</Link>;
   const row = (d: NonNullable<typeof data>[number], dim = false) => (
-    <li key={d.id}><Link href={`/lost-found/${d.id}`} className={`flex items-center gap-4 py-3.5 hover:bg-sunken sm:px-3 ${dim ? "opacity-70" : ""}`}>
+    <li key={d.id}><Link href={`/lost-found/${d.id}`} className={`flex items-center gap-4 py-3.5 hover:bg-sunken active:bg-sunken sm:px-3 ${dim ? "opacity-70" : ""}`}>
       <span className="size-20 shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-sunken">{/* eslint-disable-next-line @next/next/no-img-element */}{d.image_path && urls.get(d.image_path) && <img src={urls.get(d.image_path) ?? undefined} alt="" className="size-full object-cover" />}</span>
       <span className="min-w-0 flex-1"><span className={`tag mb-1 ${d.kind === "lost" ? "tag-blue" : ""}`}>{d.kind === "lost" ? "Lost" : "Found"}</span>
         <span className="block truncate text-[1.0625rem] font-semibold">{d.title}</span>

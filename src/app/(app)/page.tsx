@@ -5,6 +5,7 @@ import { ListingCard } from "@/components/listing-card";
 import { Icon, CATEGORY_ICON } from "@/components/icons";
 import { formatMoney } from "@/lib/money";
 import { timeAgo } from "@/lib/time";
+import { InstallPrompt } from "@/components/install-prompt";
 
 export const dynamic = "force-dynamic";
 type Row = { id: string; title: string; price_minor: number; published_at: string | null };
@@ -48,6 +49,8 @@ export default async function Home() {
               <li key={c.id} className="shrink-0"><Link href={`/explore?cat=${c.id}`} className="chip"><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={18} />{c.name}</Link></li>))}
           </ul>)}
       </section>
+
+      <InstallPrompt className="md:hidden" />
 
       <section aria-labelledby="recent">
         {head("recent", "Just listed", null, "/explore", "See all listings")}

@@ -5,6 +5,7 @@ import { parseMinor } from "@/lib/money";
 import { CONDITIONS, CONDITION_LABEL } from "@/lib/listings/schema";
 import { ListingCard } from "@/components/listing-card";
 import { Icon } from "@/components/icons";
+import { FilterSheet } from "@/components/filter-sheet";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Explore" };
@@ -51,7 +52,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
     const p = new URLSearchParams(qs); p.delete("cat"); if (id) p.set("cat", id);
     const t = p.toString(); return t ? `/explore?${t}` : "/explore";
   };
-  const advanced = !!(sp.min || sp.max || conds.length);
+  const filterCount = (sp.min ? 1 : 0) + (sp.max ? 1 : 0) + conds.length;
 
   return (
     <main>
@@ -68,29 +69,25 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
             <input name="q" type="search" defaultValue={sp.q} placeholder="Search listings" className="field !pl-12" /></label>
           <button type="submit" className="btn btn-primary">Search</button>
         </div>
-        <details open={advanced} className="group mt-3">
-          <summary className="chip inline-flex cursor-pointer list-none [&::-webkit-details-marker]:hidden"><Icon name="sliders" size={18} />Price and condition</summary>
-          <div className="mt-4 grid max-w-2xl gap-5 rounded-[var(--radius-md)] bg-sunken p-5 sm:grid-cols-2">
-            <div><p className="mb-2 text-sm font-semibold">Price</p>
-              <div className="flex gap-2">
-                <input name="min" inputMode="decimal" defaultValue={sp.min} aria-label="Minimum price" placeholder="Min" className="field" />
-                <input name="max" inputMode="decimal" defaultValue={sp.max} aria-label="Maximum price" placeholder="Max" className="field" /></div></div>
-            <fieldset><legend className="mb-2 text-sm font-semibold">Condition</legend>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {CONDITIONS.map((c) => (
-                  <label key={c} className="flex min-h-8 cursor-pointer items-center gap-2 text-[0.9375rem]">
-                    <input type="checkbox" name="cond" value={c} defaultChecked={conds.includes(c)} className="size-5 accent-[var(--color-brand)]" />{CONDITION_LABEL[c]}</label>))}
-              </div></fieldset>
-            <div className="sm:col-span-2"><button type="submit" className="btn btn-ink btn-sm">Apply</button></div>
-          </div>
-        </details>
       </form>
 
-      {categories && categories.length > 0 && (
-        <ul className="no-scrollbar -mx-[var(--space-gutter)] mt-5 flex gap-2 overflow-x-auto px-[var(--space-gutter)] py-1">
-          <li className="shrink-0"><Link href={catHref()} className="chip" aria-current={!sp.cat ? "true" : undefined}>All</Link></li>
-          {categories.map((c) => <li key={c.id} className="shrink-0"><Link href={catHref(c.id)} className="chip" aria-current={sp.cat === c.id ? "true" : undefined}>{c.name}</Link></li>)}
-        </ul>)}
+      <ul className="no-scrollbar -mx-[var(--space-gutter)] mt-5 flex gap-2 overflow-x-auto px-[var(--space-gutter)] py-1">
+        <li className="shrink-0">
+          <FilterSheet count={filterCount}>
+            <div><p className="label mb-2">Price</p>
+              <div className="flex gap-2">
+                <input form="explore-filters" name="min" inputMode="decimal" defaultValue={sp.min} aria-label="Minimum price" placeholder="Min" className="field" />
+                <input form="explore-filters" name="max" inputMode="decimal" defaultValue={sp.max} aria-label="Maximum price" placeholder="Max" className="field" /></div></div>
+            <fieldset><legend className="label mb-2">Condition</legend>
+              <div className="flex flex-wrap gap-2">
+                {CONDITIONS.map((c) => (
+                  <label key={c} className="pick"><input form="explore-filters" type="checkbox" name="cond" value={c} defaultChecked={conds.includes(c)} className="sr-only" />{CONDITION_LABEL[c]}</label>))}
+              </div></fieldset>
+          </FilterSheet>
+        </li>
+        <li className="shrink-0"><Link href={catHref()} className="chip" aria-current={!sp.cat ? "true" : undefined}>All</Link></li>
+        {categories?.map((c) => <li key={c.id} className="shrink-0"><Link href={catHref(c.id)} className="chip" aria-current={sp.cat === c.id ? "true" : undefined}>{c.name}</Link></li>)}
+      </ul>
 
       {error && <p role="alert" className="mt-8 font-medium text-danger">Search isn&rsquo;t working right now. Try again in a moment.</p>}
       {!error && !page.length && (

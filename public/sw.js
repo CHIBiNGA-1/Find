@@ -1,121 +1,81 @@
-/* f!nd Service Worker — v1
- * Strategy:
- *   Navigation  → network-first, offline fallback to /offline.html
- *   _next/static → cache-first (content-hashed, safe to cache forever)
- *   Everything else → network-only (never cache auth, Supabase API, private data)
- *
- * Supabase paths (/rest/v1/, /auth/v1/, /storage/v1/, /realtime/) are
- * explicitly network-only so session tokens and private row data are never
- * written to the cache store.
+/* f!nd service worker v2
+ *   Navigation        network-first (with navigation preload), offline page if the network fails
+ *   _next/static      cache-first (content-hashed)
+ *   icons, hero image stale-while-revalidate (instant, refreshed in the background)
+ *   Supabase + auth   never touched: tokens and private data are never written to a cache
  */
+const SHELL_CACHE = "find-shell-v2";
+const STATIC_CACHE = "find-static-v2";
+const ASSET_CACHE = "find-assets-v2";
+const SHELL_URLS = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/hero.jpg"];
+const NEVER_CACHE = ["/rest/v1/", "/auth/v1/", "/storage/v1/", "/realtime/", "supabase.co", "/auth/callback"];
 
-const SHELL_CACHE = "campushive-shell-v1";
-const STATIC_CACHE = "campushive-static-v1";
-
-const SHELL_URLS = ["/offline.html"];
-
-const NEVER_CACHE = [
-  "/rest/v1/",
-  "/auth/v1/",
-  "/storage/v1/",
-  "/realtime/",
-  "supabase.co",
-];
-
-// ── Install: pre-cache the offline shell ─────────────────────────────────────
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_URLS))
-      .then(() => self.skipWaiting()),
-  );
+  event.waitUntil(caches.open(SHELL_CACHE).then((c) => c.addAll(SHELL_URLS)).then(() => self.skipWaiting()));
 });
 
-// ── Activate: delete stale caches ────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
-  const keep = [SHELL_CACHE, STATIC_CACHE];
+  const keep = [SHELL_CACHE, STATIC_CACHE, ASSET_CACHE];
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k))),
-      )
-      .then(() => self.clients.claim()),
+    Promise.all([
+      caches.keys().then((keys) => Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k)))),
+      self.registration.navigationPreload?.enable(),
+    ]).then(() => self.clients.claim()),
   );
 });
 
-// ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  // 1. Never intercept non-GET requests (POST/PUT/DELETE = mutations)
   if (request.method !== "GET") return;
-
-  // 2. Never cache Supabase or any external auth/API call
   if (NEVER_CACHE.some((p) => request.url.includes(p))) return;
 
-  // 3. _next/static — immutable, content-hashed → cache-first
-  if (url.pathname.startsWith("/_next/static/")) {
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
-    return;
-  }
-
-  // 4. Navigation (page loads) → network-first with offline fallback
-  if (request.mode === "navigate") {
-    event.respondWith(networkFirstWithOfflineFallback(request));
-    return;
-  }
-
-  // 5. Everything else (images served from _next/image, etc.) → network-only
+  if (url.pathname.startsWith("/_next/static/")) { event.respondWith(cacheFirst(request, STATIC_CACHE)); return; }
+  if (url.origin === location.origin && (url.pathname.startsWith("/icons/") || url.pathname === "/hero.jpg")) { event.respondWith(staleWhileRevalidate(request, ASSET_CACHE)); return; }
+  if (request.mode === "navigate") { event.respondWith(navigate(event)); return; }
 });
 
-// ── Strategies ────────────────────────────────────────────────────────────────
-
-async function cacheFirst(request, cacheName) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-  const response = await fetch(request);
-  if (response.ok) {
-    const cache = await caches.open(cacheName);
-    cache.put(request, response.clone());
-  }
-  return response;
+async function cacheFirst(request, name) {
+  const hit = await caches.match(request);
+  if (hit) return hit;
+  const res = await fetch(request);
+  if (res.ok) (await caches.open(name)).put(request, res.clone());
+  return res;
 }
 
-async function networkFirstWithOfflineFallback(request) {
+async function staleWhileRevalidate(request, name) {
+  const cache = await caches.open(name);
+  const hit = await cache.match(request);
+  const fresh = fetch(request).then((res) => { if (res.ok) cache.put(request, res.clone()); return res; }).catch(() => hit);
+  return hit || fresh;
+}
+
+async function navigate(event) {
   try {
-    const response = await fetch(request);
-    return response;
+    const preload = await event.preloadResponse;
+    return preload || (await fetch(event.request));
   } catch {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    const offline = await caches.match("/offline.html");
-    return offline ?? new Response("Offline", { status: 503 });
+    return (await caches.match("/offline.html")) || new Response("You are offline.", { status: 503, headers: { "Content-Type": "text/plain" } });
   }
 }
 
-// ── Push notifications (skeleton for future use) ──────────────────────────────
+self.addEventListener("message", (event) => { if (event.data === "SKIP_WAITING") self.skipWaiting(); });
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {
     const { title = "f!nd", body = "", url: link = "/" } = event.data.json();
-    event.waitUntil(
-      self.registration.showNotification(title, {
-        body,
-        icon: "/icons/icon-192.png",
-        badge: "/icons/icon-192.png",
-        data: { url: link },
-      }),
-    );
-  } catch {
-    // malformed push payload — ignore
-  }
+    event.waitUntil(self.registration.showNotification(title, { body, icon: "/icons/icon-192.png", badge: "/icons/icon-192.png", data: { url: link } }));
+  } catch { /* malformed payload */ }
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification.data?.url ?? "/";
-  event.waitUntil(clients.openWindow(url));
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const open = list.find((c) => "focus" in c);
+      return open ? open.navigate(url).then((c) => c && c.focus()) : self.clients.openWindow(url);
+    }),
+  );
 });

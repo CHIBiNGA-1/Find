@@ -32,7 +32,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
         <Link href="/messages" className="link mb-2 inline-block text-sm font-semibold md:hidden">Back to messages</Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-[1.75rem] [font-stretch:80%]">{other?.display_name ?? "Student"}</h2>
+            <h2 data-page-title className="text-[1.75rem] [font-stretch:80%]">{other?.display_name ?? "Student"}</h2>
             {req && <Link href={`/requests/${req.id}`} className="link text-sm">Request: {req.title}</Link>}
             {lf && <Link href={`/lost-found/${lf.id}`} className="link text-sm">Lost and found: {lf.title}</Link>}
             {listing && <Link href={`/listing/${listing.id}`} className="link text-sm">{listing.title}, {formatMoney(listing.price_minor, listing.currency_code)}{listing.status !== "active" ? ` (${listing.status})` : ""}</Link>}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getContext } from "@/lib/session";
 import { ProfileForm } from "./profile-form";
+import { InstallPrompt } from "@/components/install-prompt";
 
 export const metadata = { title: "Settings" };
 
@@ -25,12 +26,19 @@ export default async function SettingsPage() {
         <ProfileForm displayName={profile?.display_name ?? ""} />
       </section>
 
+      <section className="mt-10"><h2 className="text-[1.75rem]">App</h2><InstallPrompt variant="row" className="mt-3" /></section>
+
       {/* Notifications placeholder */}
       <section className="notice mt-10">
         <h2 className="text-[1.25rem]">Push notifications</h2>
         <p className="mt-1 text-sm text-muted">
           Push notifications aren&apos;t available yet — we&apos;ll let you know when they arrive.
         </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-[1.75rem]">About f!nd</h2>
+        <p className="t-meta mt-2 leading-relaxed">Verification confirms someone belongs to the university, not how they behave. Meet in public places. f!nd doesn&rsquo;t handle payments or guarantee any exchange.</p>
       </section>
 
       {/* Danger zone */}

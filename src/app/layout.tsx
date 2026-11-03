@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "Buy, sell and find things on campus.",
   applicationName: "f!nd",
   appleWebApp: { capable: true, title: "f!nd", statusBarStyle: "default" },
+  formatDetection: { telephone: false, email: false, address: false },
+  other: { "mobile-web-app-capable": "yes" },
 };
 
 export const viewport: Viewport = {
@@ -15,6 +17,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",   // the keyboard shrinks the page, so the chat composer stays visible
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

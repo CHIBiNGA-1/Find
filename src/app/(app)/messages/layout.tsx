@@ -27,7 +27,7 @@ export default async function MessagesLayout({ children }: { children: React.Rea
             const n = counts.get(c.id) ?? 0;
             const name = other?.display_name ?? "Student";
             return (
-              <li key={c.id}><Link href={`/messages/${c.id}`} className="flex min-h-[4.5rem] items-center gap-3 py-3 hover:bg-sunken">
+              <li key={c.id}><Link href={`/messages/${c.id}`} className="flex min-h-[4.5rem] items-center gap-3 py-3 hover:bg-sunken active:bg-sunken">
                 <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-md)] bg-ink text-lg font-extrabold text-white">{name.charAt(0).toUpperCase()}</span>
                 <span className="min-w-0 flex-1"><span className={`block truncate ${n > 0 ? "font-extrabold" : "font-semibold"}`}>{name}</span>
                   <span className="t-meta block truncate">{l?.title ?? topic ?? "Item removed"}{l && l.status !== "active" ? ` (${l.status})` : ""}</span></span>
