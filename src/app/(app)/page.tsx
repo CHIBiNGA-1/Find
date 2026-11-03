@@ -25,95 +25,52 @@ export default async function Home() {
   ]);
   const recentRows = (recent.data ?? []) as Row[], trendRows = (trending.data ?? []) as Row[];
   const covers = await coverImages([...new Set([...recentRows, ...trendRows].map((l) => l.id))]);
-  const uniName = uni.data?.name ?? "your university";
+  const uniName = uni.data?.name ?? "Campus";
   const card = (l: Row) => <ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} image={covers.get(l.id)?.url} publishedAt={l.published_at} />;
-  const head = (id: string, title: string, sub: string | null, href: string, cta: string) => (
-    <div className="mb-5 flex items-end justify-between gap-4">
-      <div><h2 id={id} className="text-[1.75rem] md:text-[2.125rem]">{title}</h2>{sub && <p className="t-meta mt-1">{sub}</p>}</div>
-      <Link href={href} className="link shrink-0 text-[0.9375rem] font-semibold">{cta}</Link>
-    </div>);
 
   return (
-    <main className="space-y-14 md:space-y-20">
-      <section aria-label="Search" className="home-intro relative overflow-hidden rounded-[1.5rem] border border-line bg-white px-5 py-8 md:px-10 md:py-11">
-        <div className="home-intro-copy relative z-10 max-w-3xl">
-          <p className="mb-4 inline-flex items-center gap-2 text-[0.75rem] font-bold uppercase tracking-[0.14em] text-brand"><span className="inline-block size-2 rounded-full bg-brand" /> Your campus, in good company</p>
-          <h1 className="max-w-3xl text-[clamp(2.25rem,1rem+5vw,4.25rem)] font-extrabold leading-[0.95] [font-stretch:80%]">What do you need at {uniName}?</h1>
-          <p className="mt-4 max-w-xl text-[1rem] leading-relaxed text-muted md:text-[1.0625rem]">Find useful things, pass on what you no longer need, and connect with the people around you.</p>
+    <main className="find-home space-y-10 md:space-y-14">
+      <section className="find-home-top" aria-label="Campus marketplace">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="find-eyebrow">{uniName}</p>
+            <h1 className="find-heading">The campus marketplace<span>.</span></h1>
+          </div>
+          <Link href="/sell" className="find-sell-link"><Icon name="plus" size={18} /> List an item</Link>
         </div>
-        <form action="/explore" method="get" role="search" className="relative z-10 mt-7 flex max-w-2xl gap-2">
-          <label className="relative flex-1"><span className="sr-only">Search listings</span>
-            <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-            <input name="q" type="search" placeholder="Textbooks, laptop, mini fridge" className="field !min-h-14 !pl-12 text-[1.0625rem]" /></label>
-          <button className="btn btn-primary !min-h-14 px-7">Search</button>
+        <form action="/explore" method="get" role="search" className="find-search mt-7">
+          <Icon name="search" size={21} className="shrink-0 text-muted" />
+          <label className="min-w-0 flex-1"><span className="sr-only">Search listings</span><input name="q" type="search" placeholder="Search anything on campus" /></label>
+          <button type="submit" aria-label="Search"><Icon name="arrow" size={20} /></button>
         </form>
-        {cats.data && cats.data.length > 0 && (
-          <div className="relative z-10 mt-7">
-          <p className="mb-3 text-[0.8125rem] font-semibold text-muted">Explore popular categories</p>
-          <ul className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-1">
-            {cats.data.map((c) => (
-              <li key={c.id} className="shrink-0"><Link href={`/explore?cat=${c.id}`} className="chip"><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={18} />{c.name}</Link></li>))}
-          </ul>
-          </div>)}
+        {cats.data && cats.data.length > 0 && <nav aria-label="Shop by category" className="find-categories no-scrollbar mt-5">
+          {cats.data.map((c) => <Link key={c.id} href={`/explore?cat=${c.id}`}><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={17} />{c.name}</Link>)}
+        </nav>}
       </section>
 
       <InstallPrompt className="md:hidden" />
 
-      <section aria-labelledby="recent">
-        {head("recent", "Just listed", null, "/explore", "See all listings")}
-        {recentRows.length ? (
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">{recentRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
-        ) : (
-          <div className="rounded-[var(--radius-lg)] bg-sunken p-8 md:p-12">
-            <p className="text-[1.75rem] font-bold [font-stretch:88%]">Nothing is listed yet.</p>
-            <p className="mt-2 max-w-md text-muted">Listings from verified students at {uniName} will show up here. Yours can be the first.</p>
-            <Link href="/sell" className="btn btn-primary mt-6">Post a listing</Link>
-          </div>)}
+      <section aria-labelledby="recent" className="find-section">
+        <div className="find-section-head"><div><p className="find-eyebrow">Fresh on campus</p><h2 id="recent">Just listed</h2></div><Link href="/explore" className="find-text-link">View all <Icon name="arrow" size={16} /></Link></div>
+        {recentRows.length ? <ul className="find-listing-grid">{recentRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul> :
+          <div className="find-empty"><p>Nothing here yet.</p><Link href="/sell" className="find-text-link">Be the first to list <Icon name="arrow" size={16} /></Link></div>}
       </section>
 
-      {trendRows.length > 0 && (
-        <section aria-labelledby="trend-h">
-          {head("trend-h", "Most saved this week", null, "/explore", "Explore more")}
-          <ul className="no-scrollbar -mx-[var(--space-gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--space-gutter)] md:mx-0 md:grid md:grid-cols-5 md:overflow-visible md:px-0">
-            {trendRows.map((l) => <li key={l.id} className="w-[44vw] shrink-0 snap-start sm:w-[30vw] md:w-auto">{card(l)}</li>)}
-          </ul>
-        </section>)}
+      {trendRows.length > 0 && <section aria-labelledby="trend-h" className="find-section">
+        <div className="find-section-head"><div><p className="find-eyebrow">Popular right now</p><h2 id="trend-h">Getting attention</h2></div><Link href="/explore" className="find-text-link">Explore <Icon name="arrow" size={16} /></Link></div>
+        <ul className="find-trending-grid">{trendRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
+      </section>}
 
-      <section aria-label="Requests and lost and found" className="bleed on-brand bg-brand py-12 text-white md:py-16">
-        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
-          <div>
-            <div className="flex items-end justify-between gap-4">
-              <h2 className="text-[1.75rem] md:text-[2.125rem]">Requests</h2>
-              <Link href="/requests" className="text-[0.9375rem] font-semibold underline underline-offset-4">See all</Link>
-            </div>
-            <p className="t-meta mt-1">Students asking for something. Answer one, or post your own.</p>
-            {reqs.data?.length ? (
-              <ul className="mt-5 divide-y divide-white/25 border-y border-white/25">
-                {reqs.data.map((r) => (
-                  <li key={r.id}><Link href={`/requests/${r.id}`} className="flex items-baseline justify-between gap-4 py-3.5 hover:bg-white/10">
-                    <span className="min-w-0"><span className="block truncate font-semibold">{r.title}</span>
-                      <span className="t-meta block text-[0.8125rem]">{timeAgo(r.created_at)}</span></span>
-                    {r.budget_minor != null && <span className="price shrink-0 font-bold">{formatMoney(r.budget_minor, r.currency_code)}</span>}
-                  </Link></li>))}
-              </ul>) : <p className="mt-5 text-white/85">No open requests right now.</p>}
-            <Link href="/requests/new" className="btn btn-white mt-6">Ask for something</Link>
+      <section className="find-community" aria-label="Campus community">
+        <div className="find-community-head"><div><p className="find-eyebrow">Beyond the marketplace</p><h2>Campus, connected.</h2></div></div>
+        <div className="find-community-grid">
+          <div className="find-community-panel"><div className="find-panel-title"><h3>Wanted</h3><Link href="/requests" aria-label="All requests"> <Icon name="arrow" size={18} /></Link></div>
+            {reqs.data?.length ? <ul>{reqs.data.map((r) => <li key={r.id}><Link href={`/requests/${r.id}`}><span><strong>{r.title}</strong><small>{timeAgo(r.created_at)}</small></span>{r.budget_minor != null && <b>{formatMoney(r.budget_minor, r.currency_code)}</b>}</Link></li>)}</ul> : <p className="find-quiet">No open requests.</p>}
+            <Link href="/requests/new" className="find-inline-action">Post a request <Icon name="arrow" size={15} /></Link>
           </div>
-          <div>
-            <div className="flex items-end justify-between gap-4">
-              <h2 className="text-[1.75rem] md:text-[2.125rem]">Lost and found</h2>
-              <Link href="/lost-found" className="text-[0.9375rem] font-semibold underline underline-offset-4">See all</Link>
-            </div>
-            <p className="t-meta mt-1">Something missing, or something you picked up.</p>
-            {lost.data?.length ? (
-              <ul className="mt-5 divide-y divide-white/25 border-y border-white/25">
-                {lost.data.map((r) => (
-                  <li key={r.id}><Link href={`/lost-found/${r.id}`} className="flex items-center gap-3 py-3.5 hover:bg-white/10">
-                    <span className={`tag shrink-0 ${r.kind === "lost" ? "!bg-hl !text-ink" : "!bg-white !text-ink"}`}>{r.kind === "lost" ? "Lost" : "Found"}</span>
-                    <span className="min-w-0"><span className="block truncate font-semibold">{r.title}</span>
-                      <span className="t-meta block text-[0.8125rem]">{r.area}, {timeAgo(r.created_at)}</span></span>
-                  </Link></li>))}
-              </ul>) : <p className="mt-5 text-white/85">Nothing reported right now.</p>}
-            <Link href="/lost-found/new" className="btn btn-white mt-6">Report an item</Link>
+          <div className="find-community-panel"><div className="find-panel-title"><h3>Lost & found</h3><Link href="/lost-found" aria-label="All lost and found reports"><Icon name="arrow" size={18} /></Link></div>
+            {lost.data?.length ? <ul>{lost.data.map((r) => <li key={r.id}><Link href={`/lost-found/${r.id}`}><span><strong>{r.title}</strong><small>{r.area} · {timeAgo(r.created_at)}</small></span><em>{r.kind === "lost" ? "Lost" : "Found"}</em></Link></li>)}</ul> : <p className="find-quiet">No reports right now.</p>}
+            <Link href="/lost-found/new" className="find-inline-action">Report an item <Icon name="arrow" size={15} /></Link>
           </div>
         </div>
       </section>
