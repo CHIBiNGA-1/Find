@@ -28,6 +28,7 @@ const PATHS = {
   close: "M6 6l12 12M18 6L6 18",
   check: "M5 12l5 5 9-9",
   image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M9 9h.01",
+  camera: "M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
   edit: "M4 20h4L19 9l-4-4L4 16z",
   alert: "M12 4l9 16H3zM12 10v4M12 17h.01",
   megaphone: "M4 10v4l12 5V5zM16 8a3 3 0 0 1 0 8M7 14l1 5h3l-1-4",

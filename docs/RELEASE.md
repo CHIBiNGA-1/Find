@@ -1,8 +1,8 @@
 # Release guide: redesign release candidate
 
 ## What ships
-- Application redesign (no new framework, no second backend), with Stationery added to the existing category list.
-- **Three migrations:** `0011_discovery_and_messaging_refinements.sql`, `0012_push_subscriptions.sql`, and `0013_stationery_category.sql`. `0013` adds the Stationery category without changing existing data. `0012` adds one table and one function and touches nothing existing. `0011` is additive and backward compatible. Nothing is dropped except the old 9-argument `search_listings` signature, which is replaced by a 12-argument function whose three new arguments all have defaults, so the previous app build keeps working during rollout.
+- Application redesign (no new framework, no second backend).
+- **Fourteen migrations total.** `0011_discovery_and_messaging_refinements.sql` and `0012_push_subscriptions.sql` add discovery/messaging refinements and push support. `0013_stationery_category.sql` adds the Stationery category and is already part of the repository's published history. `0014_founding_universities.sql` adds university founding/probation/closure behavior and trends by recent saves and enquiries. Do not renumber or overwrite `0013`.
 
 ## Environment variables
 The two existing variables are unchanged (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Push notifications add five **optional** ones (see `.env.example`); with none of them set the app behaves as before and the Settings toggle stays hidden.
@@ -11,32 +11,32 @@ The two existing variables are unchanged (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBL
 |---|---|---|
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | public | Shows the toggle; identifies your server to browsers |
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | server only | Signs push requests (`npx web-push generate-vapid-keys`; subject like `mailto:you@domain`) |
-| `SUPABASE_SERVICE_ROLE_KEY` | server only | Privileged key used only by `/api/push/notify` to read recipient subscriptions; never expose it to the client |
-| `PUSH_WEBHOOK_SECRET` | server only | Shared secret sent by the Supabase webhook as the `Authorization` header |
+| `SUPABASE_SERVICE_ROLE_KEY` | server only | Read only by the server-side push notification route to read recipient subscriptions. Never expose it to the browser. |
+| `PUSH_WEBHOOK_SECRET` | server only | Shared secret the webhook sends as `Authorization: Bearer <secret>` |
 
 The service-role key bypasses RLS. Keep it only in Vercel's server environment, never in a `NEXT_PUBLIC_` variable.
 
 ## Deploy order (existing Vercel + Supabase; Render if you use it for anything)
 This repository contains no Render configuration, so Render could not be reviewed. Treat anything running there as unverified.
 1. **Back up** the production database (Supabase dashboard, Database, Backups; take a manual backup or PITR marker).
-2. **Rehearse** `0011`, `0012`, and `0013` on a Supabase branch or staging project restored from that backup. Run the pgTAP tests there.
-3. Apply all pending migrations to production (`supabase db push`). The old app build continues to work.
+2. **Rehearse** all unapplied migrations on a Supabase branch or staging project restored from that backup. Run every matching suite in `supabase/tests/` there.
+3. Apply the reviewed migrations to production (`supabase db push`) only after the staging checks pass. The RC3 university workflow requires `0014`.
 4. Deploy the new app build to Vercel (preview first, then promote). Push stays off until step 6.
 5. Smoke test with a real account: search (relevance is the default with a search term), create a listing with 3 photos and drag them into a new order, open a conversation and send a message from a second account, check "Seen".
-6. **Enable push (optional).** Set the five variables above in Vercel and redeploy. In Supabase, Database, Webhooks, create a webhook on table `messages`, event **Insert**, type HTTP Request, `POST https://<your-domain>/api/push/notify`, with header `Authorization` set to the same value as `PUSH_WEBHOOK_SECRET`. Then, on a phone with f!nd installed, turn notifications on under You, Settings, and message that account from another one. A wrong secret returns 401 and an unconfigured server returns 503, so a misconfiguration is visible in the webhook's delivery log.
+6. **Enable push (optional).** Set the five variables above in Vercel and redeploy. In Supabase, Database, Webhooks, create a webhook on table `messages`, event **Insert**, type HTTP Request, `POST https://<your-domain>/api/push/notify`, with header `Authorization: Bearer <PUSH_WEBHOOK_SECRET>`. Then, on a phone with f!nd installed, turn notifications on under You, Settings, and message that account from another one. A wrong secret returns 401 and an unconfigured server returns 503, so a misconfiguration is visible in the webhook's delivery log.
 
 ## Rollback
 - **App:** promote the previous Vercel deployment. The previous build works against the migrated database.
 - **Push:** remove the webhook in Supabase (messages stop triggering sends immediately) and unset `NEXT_PUBLIC_VAPID_PUBLIC_KEY` to hide the toggle. Nothing else changes.
-- **Stationery category:** `0013` is safe to leave in place when rolling back the app. If removal is necessary, delete the category only after confirming that no listings reference it.
-- **Database (only if required):** `0011` and `0012` are safe to leave in place. To remove `0012`: `drop function public.register_push_subscription(text, text, text, text); drop table public.push_subscriptions;` (subscriptions are disposable). To remove `0011`: In a transaction:
-  1. Drop `register_listing_image`, `reorder_listing_images`, `peer_last_read`, `conversation_previews`, and the 12-argument `search_listings`.
+- **Database (only if required):** `0011` through `0014` are designed to be additive; do not remove them casually. Reverse migrations require a reviewed backup and a data-loss assessment. In particular, preserve `0013_stationery_category.sql` in the migration history.
+  1. Drop `register_listing_image`, `reorder_listing_images`, `peer_last_read`, `conversation_previews`, and the 11-argument `search_listings`.
   2. Recreate the original `search_listings` from `0003_marketplace.sql`, `enforce_listing_rules` from `0001_foundation.sql`, and `confirm_exchange` from `0006_exchanges_reviews_moderation.sql`.
   3. Only if you accept losing the data: `alter table listings drop column campus_area`.
   4. Subcategory rows can stay. Delete them only if no listing references them.
 
 ## Known limitations
 - **No verification against a real Supabase project.** pgTAP ran on PostgreSQL 16 with a stand-in for `auth` and `storage`; browser tests ran against a mock. Auth email delivery, storage policies on real buckets, and realtime delivery are unverified.
+- **No production migration or deployment was performed for this release.** The appended migration `0014` must be reviewed and staged before applying it to any live project.
 - **Account deletion removes exchanges and their reviews**, including a review the deleting user wrote about someone else. The deletion screen now says so. Preserving those reviews needs a foreign-key change and a product decision.
 - **"Seen" reveals when you last read a conversation** to the other participant. It is disclosed in Settings. There is no opt-out yet.
 - **Push delivery is not verified end to end.** The notifier logic, webhook authentication and validation, subscription storage and RLS, service worker handlers, and the Settings toggle are all tested. What no test here can do is deliver through a real browser push service to a real device. Verify with step 6 above before announcing it. On iPhone, notifications only work after f!nd is added to the Home Screen (the toggle says so). Notifications never contain message text; a message from someone you have blocked, or who has blocked you, sends nothing.

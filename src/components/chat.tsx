@@ -140,6 +140,9 @@ export function Chat({ conversationId, me, initial, hasEarlier, canSend, timezon
           <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]">
             <span className="sr-only">Send a photo</span><Icon name="image" size={20} />
             <input type="file" accept="image/*" className="sr-only" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>
+          <label className="hidden size-11 shrink-0 cursor-pointer place-items-center rounded-full shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] [@media(pointer:coarse)]:grid">
+            <span className="sr-only">Take a photo</span><Icon name="camera" size={20} />
+            <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} maxLength={2000} aria-label="Message" placeholder="Write a message"
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }}
             className="field !min-h-11 max-h-32 flex-1 resize-none !rounded-[22px] py-2.5 leading-snug [field-sizing:content]" />

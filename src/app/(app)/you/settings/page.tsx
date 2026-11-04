@@ -34,7 +34,7 @@ export default async function SettingsPage() {
       <section className="mt-10">
         <h2 className="text-[1.75rem]">Privacy</h2>
         <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[0.9375rem]">
-          <li>Only verified members of your university can see your name and listings.</li>
+          <li>Only verified members of the university can see your name and listings.</li>
           <li>Your email address and phone number are never shown on f!nd.</li>
           <li>People you message can see when you last read a conversation.</li>
           <li>Notifications never include what a message says.</li>

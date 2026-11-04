@@ -32,7 +32,7 @@ supabase start
 supabase db reset   # applies migrations + seed.sql from scratch
 ```
 
-Migrations run in numeric order (`0001_foundation.sql` … `0013_stationery_category.sql`). Apply all migrations with `supabase db push`; do not cherry-pick individual files. For the release order, rollback guidance, and push-notification configuration, see [RELEASE.md](./RELEASE.md).
+Migrations run in numeric order (`0001_foundation.sql` … `0014_founding_universities.sql`). Apply all migrations with `supabase db push`; do not cherry-pick individual files. `0013_stationery_category.sql` is an existing migration and must not be overwritten.
 
 ### 1.3 Required extensions
 
@@ -53,7 +53,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your anon key>
 ```
 
-> `SUPABASE_SERVICE_ROLE_KEY` is a privileged server-only secret. The push notification endpoint uses it to read recipients' subscriptions; it must never be exposed to the browser or prefixed with `NEXT_PUBLIC_`. Configure it only in the server environment when enabling push. See [RELEASE.md](./RELEASE.md).
+> `SUPABASE_SERVICE_ROLE_KEY` is optional and used only by the server-side push notification endpoint. Never expose it through a `NEXT_PUBLIC_` variable or include it in client code.
 
 See `.env.example` in the repo for the full list of variables.
 
@@ -77,8 +77,7 @@ In **Vercel Dashboard → Settings → Environment Variables**, add:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview, Development |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview, Development |
-
-Push notification variables are optional and should be configured only when enabling push; see [RELEASE.md](./RELEASE.md).
+| `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview, Development (only when enabling push) |
 
 ### 3.3 Deploy
 

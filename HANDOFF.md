@@ -1,8 +1,6 @@
 # CampusHive — Session Handoff Notes
 *Prepared: November 2026 · Production Hardening Sprint*
 
-> Historical handoff from an earlier project state; details below are not current. For this release candidate, use [README.md](./README.md), [docs/REDESIGN_REPORT.md](./docs/REDESIGN_REPORT.md), and [docs/RELEASE.md](./docs/RELEASE.md).
-
 ---
 
 ## What Was Done This Session
@@ -253,3 +251,26 @@ Fixed:
 Open decisions (not changed):
 - Deleting an account cascades to exchange records and reviews, so the other party loses reviews written about them and chat history. Consider anonymising instead of deleting for these tables.
 - Deletion removes files before the database call; if the call fails, the account remains but its photos are gone.
+
+---
+
+## rc3: founding universities, trending, camera capture
+
+**Migration sequence:** `0013_stationery_category.sql` is already in the repository history. The RC3 founding migration is `0014_founding_universities.sql`; preserve both. Before deploying, check the target project's migration history and rehearse every unapplied migration in staging. No live-project migration was performed as part of this archive application.
+
+**Founding a university.** After confirming their email, a student picks their university from the list. If it is missing they add it
+and become its first moderator (verified, role `moderator`). A new university starts in a *founding period*:
+**30 days** to reach **15 verified students** (the founder counts). Reaching it makes the university permanent (`active`); missing it closes it
+(`closed`). Both numbers are database settings, not code: `alter database postgres set app.founding_days = '30'; ... app.founding_members = '15';`.
+- A closed university is invisible: `is_verified_member()` and `is_moderator()` return false, so every RLS policy shuts at once. Members are
+  sent to `/closed` and can join another university. Nothing is deleted automatically; removing a closed university's rows is a manual
+  operator step (`docs/operations.md`).
+- Closing is evaluated lazily by `evaluate_university()` (on each request from a probation-university member and when a moderator verifies someone). No scheduler is needed.
+- Anti-abuse: one founded university per account; an exact duplicate name (any case) is refused; a near-duplicate warns and offers "join that one"
+  or "mine is different"; the naming guide is advice only and is not enforced.
+- Country defaults to `ZM` for founded universities (currency and timezone use the column defaults ZMW and Africa/Lusaka). Change in `found_university()` when launching elsewhere.
+
+**Trending** now ranks by saves plus enquiries in the last 7 days, then newest, so the section is never empty while listings exist.
+**Camera**: a "Take photo" control (`capture="environment"`) appears on touch devices in the listing form, lost-and-found form and chat.
+
+**Archive-reported:** the ZIP claims a rolled-back live-project transaction test; this update did not perform or independently verify it. **Independently verified for this combined release:** typecheck, lint, 69 unit tests, production build, all 14 migrations with 83 pgTAP assertions on disposable PostgreSQL 16, and 40 browser renders plus 35 interactions against a mock backend. Camera capture still needs a physical-device check.

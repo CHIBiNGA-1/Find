@@ -134,10 +134,13 @@ export function ListingForm({ categories, userId, currency, initial = {} }: { ca
                     style={{ touchAction: "none" }} className="grid size-8 cursor-grab place-items-center rounded bg-ink/85 active:cursor-grabbing"><Icon name="grip" size={18} /></button>)}
               </div>
             </li>))}
-          {images.length < MAX_IMAGES && (
+          {images.length < MAX_IMAGES && (<>
             <li><label className="grid aspect-square cursor-pointer place-items-center rounded-[var(--radius-md)] border-2 border-dashed border-line-strong text-center text-sm font-semibold text-muted hover:border-ink hover:text-ink">
               <span><Icon name="image" size={26} className="mx-auto mb-1" />Add photos</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/*" multiple className="sr-only" onChange={(e) => { const picked = Array.from(e.target.files ?? []); e.target.value = ""; void addFiles(picked); }} /></label></li>)}
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/*" multiple className="sr-only" onChange={(e) => { const picked = Array.from(e.target.files ?? []); e.target.value = ""; void addFiles(picked); }} /></label></li>
+            <li className="hidden [@media(pointer:coarse)]:block"><label className="grid aspect-square cursor-pointer place-items-center rounded-[var(--radius-md)] border-2 border-dashed border-line-strong text-center text-sm font-semibold text-muted hover:border-ink hover:text-ink">
+              <span><Icon name="camera" size={26} className="mx-auto mb-1" />Take photo</span>
+              <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => { const picked = Array.from(e.target.files ?? []); e.target.value = ""; void addFiles(picked); }} /></label></li></>)}
         </ul>
         {images.some((i) => i.error) && <ul className="mt-2">{images.filter((i) => i.error).map((i) => <li key={i.key} role="alert" className="err">{i.error}</li>)}</ul>}
       </section>

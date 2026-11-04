@@ -4,6 +4,7 @@ import { coverImages } from "@/lib/listings/queries";
 import { categoryTree, topLevelOf, type Category } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { EmptyState } from "@/components/empty-state";
+import { FoundingBanner } from "@/components/founding-banner";
 import { Icon, CATEGORY_ICON } from "@/components/icons";
 import { InstallPrompt } from "@/components/install-prompt";
 import { formatMoney } from "@/lib/money";
@@ -12,26 +13,30 @@ import { timeAgo } from "@/lib/time";
 export const dynamic = "force-dynamic";
 type Row = { id: string; title: string; price_minor: number; published_at: string | null; seller_id: string };
 
-function Strip({ title, href, children }: { title: string; href?: string; children: React.ReactNode }) {
+function Strip({ title, href, sub, children }: { title: string; href?: string; sub?: string; children: React.ReactNode }) {
   return (
     <section aria-label={title}>
-      <div className="mb-4 flex items-baseline justify-between gap-4"><h2 className="t-section">{title}</h2>{href && <Link href={href} className="link text-[0.9rem]">See all</Link>}</div>
+      <div className="mb-4 flex items-baseline justify-between gap-4"><div><h2 className="t-section">{title}</h2>{sub && <p className="t-meta mt-0.5">{sub}</p>}</div>{href && <Link href={href} className="link text-[0.9rem]">See all</Link>}</div>
       {children}
     </section>
   );
 }
 
 export default async function Home() {
-  const { supabase, userId, universityId, currency, timezone } = await getContext();
+  const { supabase, userId, universityId, currency, timezone, universityName } = await getContext();
   const now = new Date().toISOString();
-  const [recent, trending, cats, reqs, lost, savedCats] = await Promise.all([
+  const [recent, trending, cats, reqs, lost, savedCats, profile] = await Promise.all([
     supabase.rpc("search_listings", { uni: universityId, lim: 12 }),
     supabase.rpc("trending_listings", { uni: universityId, lim: 4 }),
     supabase.from("categories").select("id, slug, name, parent_id"),
     supabase.from("requests").select("id, title, budget_minor, currency_code, created_at").eq("university_id", universityId).eq("status", "open").gt("expires_at", now).order("created_at", { ascending: false }).limit(4),
     supabase.from("lost_found_reports").select("id, kind, title, area, created_at").eq("university_id", universityId).eq("status", "open").order("created_at", { ascending: false }).limit(4),
     supabase.from("saved_listings").select("listings(category_id)").order("created_at", { ascending: false }).limit(20),
+    supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
   ]);
+  const hour = Number(new Intl.DateTimeFormat("en", { hour: "numeric", hourCycle: "h23", timeZone: timezone }).format(new Date()));
+  const timeOfDay = hour >= 5 && hour < 12 ? "morning" : hour >= 12 && hour < 17 ? "afternoon" : "evening";
+  const firstName = profile.data?.display_name?.trim().split(/\s+/)[0] || "there";
   const all = (cats.data ?? []) as Category[];
   const tree = categoryTree(all);
 
@@ -52,7 +57,11 @@ export default async function Home() {
 
   return (
     <main className="space-y-12">
-      <h1 className="sr-only">Home</h1>
+      <header className="space-y-1">
+        <h1 className="t-section">Good {timeOfDay}, {firstName}.</h1>
+        <p className="t-meta">Here&apos;s what&apos;s happening at {universityName}.</p>
+      </header>
+      <FoundingBanner />
       <section aria-label="Search and categories" className="space-y-4">
         <form action="/explore" method="get" role="search" className="relative">
           <label><span className="sr-only">Search listings</span>
@@ -74,14 +83,14 @@ export default async function Home() {
       <Strip title="Just listed" href="/explore">
         {recentRows.length
           ? <ul className="grid-listings">{recentRows.map((l, i) => <li key={l.id}>{card(l, i < 4)}</li>)}</ul>
-          : <EmptyState title="Nothing listed yet." hint="Listings from verified students at your university appear here." href="/sell" action="List the first item" />}
+          : <EmptyState title="Nothing listed yet." hint="Listings from verified students at the university appear here." href="/sell" action="List the first item" />}
       </Strip>
 
       {forYou.length > 0 && fav && <Strip title={`More ${fav.name.toLowerCase()}`} href={`/explore?cat=${fav.id}`}>
         <ul className="grid-listings">{forYou.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
       </Strip>}
 
-      {trendRows.length > 0 && <Strip title="Saved most this week">
+      {trendRows.length > 0 && <Strip title="Trending on the campus" sub="Most saved and asked about this week, newest first when it is quiet.">
         <ul className="grid-listings">{trendRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
       </Strip>}
 

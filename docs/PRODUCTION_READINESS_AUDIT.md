@@ -1,11 +1,8 @@
-# f!nd — Historical Production Readiness Audit
+# f!nd — Production Readiness Audit
 
 **Disposition: NOT READY FOR PUBLIC RELEASE.**
 
-> Historical audit of an earlier archive. Its review scope and findings do not describe the current release candidate; see [REDESIGN_REPORT.md](./REDESIGN_REPORT.md) and [RELEASE.md](./RELEASE.md) for current changes, verification, and limitations.
-
 Review date: 3 November 2026
-
 Review scope: supplied `Find2-redesign(2).zip` source tree, configuration, SQL migrations, server actions, and operational documentation.
 
 ## What is present

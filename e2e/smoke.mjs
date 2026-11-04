@@ -1,36 +1,30 @@
 // Browser smoke test against a MOCK Supabase. Verifies rendering, layout, console cleanliness and accessibility. Not a data-integrity test.
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import chromium from "@sparticuz/chromium";
 import { start } from "./mock-supabase.mjs";
 const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer-core");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const axeSrc = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const PORT = 3100, BASE = `http://localhost:${PORT}`, OUT = process.env.SHOTS ?? "/tmp/shots";
 fs.mkdirSync(OUT, { recursive: true });
 const id = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const { srv, rpcLog } = await start();
-const root = new URL("..", import.meta.url).pathname;
-const app = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], { cwd: root, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-local-mock-tests-only", NEXT_PUBLIC_VAPID_PUBLIC_KEY: "BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs", VAPID_PRIVATE_KEY: "z1dZ8B1kCagB3g5aF66c8nJmNYy2K1CY86kB14TWP_U", VAPID_SUBJECT: "mailto:test@example.com", SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-mock-tests-only", PUSH_WEBHOOK_SECRET: "test-webhook-secret" }, stdio: "ignore" });
-process.once("exit", () => { if (app.exitCode === null) app.kill(); });
-let serverReady = false;
-for (let i = 0; i < 60 && app.exitCode === null; i++) {
+const app = spawn(process.execPath, [path.join(ROOT, "node_modules/next/dist/bin/next"), "start", "-p", String(PORT)], { cwd: ROOT, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-local-mock-tests-only", NEXT_PUBLIC_VAPID_PUBLIC_KEY: "BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs", VAPID_PRIVATE_KEY: "z1dZ8B1kCagB3g5aF66c8nJmNYy2K1CY86kB14TWP_U", VAPID_SUBJECT: "mailto:test@example.com", SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-mock-tests-only", PUSH_WEBHOOK_SECRET: "test-webhook-secret" }, stdio: "ignore" });
+process.once("exit", () => { if (!app.killed) app.kill("SIGTERM"); srv.close(); });
+let ready = false;
+for (let i = 0; i < 60; i++) {
   try {
     const response = await fetch(BASE + "/welcome");
-    if (response.ok) {
-      await response.arrayBuffer();
-      serverReady = true;
-      break;
-    }
-  } catch {}
+    if (response.ok) { ready = true; break; }
+  } catch { /* The server is still starting. */ }
   await new Promise((r) => setTimeout(r, 500));
 }
-if (!serverReady) {
-  app.kill();
-  srv.close();
-  throw new Error("Next.js test server did not become ready");
-}
+if (!ready) throw new Error("Next.js server did not become ready at /welcome");
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({ sub: "00000000-0000-4000-8000-000000000001", role: "authenticated", aud: "authenticated", exp: Math.floor(Date.now() / 1000) + 86400 })}.sig`;
 const session = { access_token: jwt, token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "r", user: { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", email: "mwansa@unza.test" } };
@@ -80,7 +74,8 @@ async function fresh(vp, path) { const pg = await browser.newPage(); await pg.se
   const tabs = await pg.$$eval('nav[aria-label="Primary"].tabbar a, .tabbar a', (a) => a.map((x) => x.textContent.trim()));
   check("mobile: bottom bar has the five destinations", ["Home", "Explore", "Sell", "Messages", "You"].every((t) => tabs.some((x) => x.includes(t))), tabs.join("|"));
   check("mobile: sidebar hidden", await pg.$eval(".rail", (e) => getComputedStyle(e).display === "none"));
-  check("home: Stationery appears in the category navigation", await pg.$eval('nav[aria-label="Categories"]', (nav) => nav.textContent.includes("Stationery")));
+  check("home: greeting uses the profile's first name", await pg.$eval("main h1", (e) => /^Good (morning|afternoon|evening), Mwansa\.$/.test(e.textContent.trim())));
+  check("home: Stationery category is available", await pg.$eval('nav[aria-label="Categories"]', (e) => e.textContent.includes("Stationery")));
   await pg.close();
   pg = await fresh(VIEWPORTS.desktop, "/");
   check("desktop: sidebar visible, bottom bar hidden", await pg.evaluate(() => getComputedStyle(document.querySelector(".rail")).display !== "none" && getComputedStyle(document.querySelector(".tabbar")).display === "none"));
@@ -209,7 +204,9 @@ for (const c of checks) console.log(`${c.ok ? "ok  " : "FAIL"} ${c.name}${c.ok ?
 console.log(`${checks.filter((c) => c.ok).length}/${checks.length} interaction checks passed`);
 fs.writeFileSync(`${OUT}/interactions.json`, JSON.stringify(checks, null, 1));
 
-await browser.close(); app.kill(); srv.close();
+await browser.close();
+app.kill("SIGTERM");
+srv.close();
 fs.writeFileSync(`${OUT}/results.json`, JSON.stringify(results, null, 1));
 let bad = 0;
 for (const r of results) {

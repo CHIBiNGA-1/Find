@@ -1,6 +1,6 @@
 # f!nd — Operations Guide
 
-This document covers day-to-day operations: adding universities, promoting moderators, configuring rate limits, monitoring, and common admin tasks.
+This document covers day-to-day operations: founding and maintaining universities, promoting moderators, configuring rate limits, monitoring, and common admin tasks.
 
 ---
 
@@ -44,6 +44,17 @@ update public.university_memberships set role = 'admin' where ...;
 ```
 
 > Moderators can only act within their own university. This is enforced in every security-definer function.
+
+## 2a. Founding universities
+
+Students can found an unlisted university during onboarding. It starts with `status = 'probation'`; the founder is its first verified moderator. The default period is 30 days and the default target is 15 verified members, including the founder. Database settings can be changed before new universities are founded:
+
+```sql
+alter database postgres set app.founding_days = '30';
+alter database postgres set app.founding_members = '15';
+```
+
+The app evaluates the period lazily when a member loads the app or a moderator verifies a member. Reaching the target promotes the university to `active`; missing the deadline closes it and blocks member access through RLS. Closed-university data is not deleted automatically. Review any cleanup separately and retain required audit records.
 
 ---
 

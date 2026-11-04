@@ -17,7 +17,7 @@ State: **release candidate, not production verified.** See "Verification" for ex
 - Request budget hard-coded ZMW; now the university currency.
 - The font width axis was never loaded; headings now render as designed.
 - Account-deletion copy misdescribed what is deleted.
-**Added:** subcategories, relevance and price sorting, cursor "show more", drag-and-drop photo reordering (mouse, touch, keyboard), real byte-level upload progress, push notifications (content-free, opt-in per device), filter sheet with removable chips, "Seen", inbox previews and live unread, earlier-message paging, share, related listings, campus area, enquiry counts, verification status on You, confirmation before deleting a draft, ESLint.
+**Added:** Stationery category, founding universities with probation/promotion/closure, time-of-day personalized home greeting, subcategories, relevance and price sorting, cursor "show more", drag-and-drop photo reordering (mouse, touch, keyboard), real byte-level upload progress, push notifications (content-free, opt-in per device), filter sheet with removable chips, "Seen", inbox previews and live unread, earlier-message paging, share, related listings, campus area, enquiry counts, verification status on You, confirmation before deleting a draft, ESLint.
 **Removed:** fake push-notification setting, promotional sections on the welcome page, the site footer (its safety text moved into listing, message and settings screens), the desktop header navigation (replaced by the rail).
 
 ## C. Feature preservation
@@ -37,7 +37,7 @@ State: **release candidate, not production verified.** See "Verification" for ex
 
 ## D. Engineering
 - **Architecture:** no new framework. New pure modules `lib/explore-params`, `lib/safe-redirect`, `lib/categories`, `lib/listings/images`, `lib/listings/explore` (single search path shared by the page and the load-more action).
-- **Database:** migrations `0011` and `0012` (see `docs/RELEASE.md`). RPCs are `SECURITY INVOKER` except `peer_last_read`, which is `SECURITY DEFINER` with an explicit participant check and a pgTAP test for a non-participant. No policy was weakened.
+- **Database:** migrations `0011`–`0014` (see `docs/RELEASE.md`), preserving `0013_stationery_category.sql`. RPCs are `SECURITY INVOKER` except the documented security-definer functions with explicit authorization checks and pgTAP coverage. No policy was weakened.
 - **Security:** open redirect closed; UUID and bounds validation on new actions; errors no longer swallowed; no service-role key in the client.
 - **Dependencies:** added `web-push` (+ types; the standard library for VAPID-signed delivery), `server-only`, and `eslint`, `eslint-config-next`, `@eslint/eslintrc` (dev).
 - **Privileged key:** push is the first and only use of `SUPABASE_SERVICE_ROLE_KEY`, confined to `src/lib/supabase/admin.ts` (`server-only`) and the one webhook route, which authenticates with a constant-time bearer-secret check. A scan of `.next/static` found none of the server secrets in the client bundle. The e2e suite has its own `package.json`.
@@ -49,10 +49,10 @@ State: **release candidate, not production verified.** See "Verification" for ex
 | Install | `npm ci` | Pass |
 | Types | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | 0 errors, 1 warning (config file default export) |
-| Unit | `npm test` | 66 of 66 pass |
-| DB | `npm run test:db` | 13 migrations apply on PostgreSQL 16; pgTAP 70 of 70 pass (19, 18, 23, 9, 1) |
-| Build | `next build` | Pass, 28 routes; warning about Supabase in Edge middleware (harmless) |
-| Browser, mock backend | `cd e2e && npm test` | 40 of 40 renders clean (20 screens, 390px and 1280px); 0 axe-core WCAG 2.2 A/AA violations; 34 of 34 interaction checks (including Stationery category navigation, throttled-upload progress, drag and keyboard reorder, and the push webhook over HTTP) |
+| Unit | `npm test` | 69 of 69 pass |
+| DB | PostgreSQL 16 disposable container | All 14 migrations apply; pgTAP 83 of 83 pass (19, 18, 23, 9, 1, 13) |
+| Build | `npm run build` (Node 22) | Pass, 30 routes; warning about Supabase in Edge middleware |
+| Browser, mock backend | `cd e2e && npm test` | 40 of 40 page renders clean (20 screens at 390px and 1280px); 0 axe-core violations; 35 of 35 interaction checks, including the personalized greeting and Stationery category |
 | Dependency audit | `npm audit --omit=dev` | 3 advisories (1 moderate, 2 high); see release guide |
 | **Not run** | Anything against a real Supabase project; real email, storage and realtime; **push delivery through a real push service to a real device**; touch drag on a physical screen; screen-reader testing; load testing; Render | Not run |
 Automated axe checks cover only part of WCAG; manual assistive-technology testing is still required.
