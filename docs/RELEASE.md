@@ -1,8 +1,8 @@
 # Release guide: redesign release candidate
 
 ## What ships
-- Application redesign (no new framework, no second backend).
-- **Two migrations: `0011_discovery_and_messaging_refinements.sql` and `0012_push_subscriptions.sql`.** `0012` adds one table and one function and touches nothing existing. `0011` is additive and backward compatible. Nothing is dropped except the old 9-argument `search_listings` signature, which is replaced by a 12-argument function whose three new arguments all have defaults, so the previous app build keeps working during rollout.
+- Application redesign (no new framework, no second backend), with Stationery added to the existing category list.
+- **Three migrations:** `0011_discovery_and_messaging_refinements.sql`, `0012_push_subscriptions.sql`, and `0013_stationery_category.sql`. `0013` adds the Stationery category without changing existing data. `0012` adds one table and one function and touches nothing existing. `0011` is additive and backward compatible. Nothing is dropped except the old 9-argument `search_listings` signature, which is replaced by a 12-argument function whose three new arguments all have defaults, so the previous app build keeps working during rollout.
 
 ## Environment variables
 The two existing variables are unchanged (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Push notifications add five **optional** ones (see `.env.example`); with none of them set the app behaves as before and the Settings toggle stays hidden.
@@ -19,8 +19,8 @@ The service-role key bypasses RLS. Keep it only in Vercel's server environment, 
 ## Deploy order (existing Vercel + Supabase; Render if you use it for anything)
 This repository contains no Render configuration, so Render could not be reviewed. Treat anything running there as unverified.
 1. **Back up** the production database (Supabase dashboard, Database, Backups; take a manual backup or PITR marker).
-2. **Rehearse** `0011` and `0012` on a Supabase branch or staging project restored from that backup. Run `supabase/tests/03_discovery_and_exchange.sql` and `04_push_subscriptions.sql` there.
-3. Apply both to production (`supabase db push`). The old app build continues to work.
+2. **Rehearse** `0011`, `0012`, and `0013` on a Supabase branch or staging project restored from that backup. Run the pgTAP tests there.
+3. Apply all pending migrations to production (`supabase db push`). The old app build continues to work.
 4. Deploy the new app build to Vercel (preview first, then promote). Push stays off until step 6.
 5. Smoke test with a real account: search (relevance is the default with a search term), create a listing with 3 photos and drag them into a new order, open a conversation and send a message from a second account, check "Seen".
 6. **Enable push (optional).** Set the five variables above in Vercel and redeploy. In Supabase, Database, Webhooks, create a webhook on table `messages`, event **Insert**, type HTTP Request, `POST https://<your-domain>/api/push/notify`, with header `Authorization` set to the same value as `PUSH_WEBHOOK_SECRET`. Then, on a phone with f!nd installed, turn notifications on under You, Settings, and message that account from another one. A wrong secret returns 401 and an unconfigured server returns 503, so a misconfiguration is visible in the webhook's delivery log.
@@ -28,6 +28,7 @@ This repository contains no Render configuration, so Render could not be reviewe
 ## Rollback
 - **App:** promote the previous Vercel deployment. The previous build works against the migrated database.
 - **Push:** remove the webhook in Supabase (messages stop triggering sends immediately) and unset `NEXT_PUBLIC_VAPID_PUBLIC_KEY` to hide the toggle. Nothing else changes.
+- **Stationery category:** `0013` is safe to leave in place when rolling back the app. If removal is necessary, delete the category only after confirming that no listings reference it.
 - **Database (only if required):** `0011` and `0012` are safe to leave in place. To remove `0012`: `drop function public.register_push_subscription(text, text, text, text); drop table public.push_subscriptions;` (subscriptions are disposable). To remove `0011`: In a transaction:
   1. Drop `register_listing_image`, `reorder_listing_images`, `peer_last_read`, `conversation_previews`, and the 12-argument `search_listings`.
   2. Recreate the original `search_listings` from `0003_marketplace.sql`, `enforce_listing_rules` from `0001_foundation.sql`, and `confirm_exchange` from `0006_exchanges_reviews_moderation.sql`.

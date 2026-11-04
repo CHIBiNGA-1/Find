@@ -32,7 +32,7 @@ supabase start
 supabase db reset   # applies migrations + seed.sql from scratch
 ```
 
-Migrations run in numeric order (`0001_foundation.sql` … `0012_push_subscriptions.sql`). Apply all migrations with `supabase db push`; do not cherry-pick individual files. For the release order, rollback guidance, and push-notification configuration, see [RELEASE.md](./RELEASE.md).
+Migrations run in numeric order (`0001_foundation.sql` … `0013_stationery_category.sql`). Apply all migrations with `supabase db push`; do not cherry-pick individual files. For the release order, rollback guidance, and push-notification configuration, see [RELEASE.md](./RELEASE.md).
 
 ### 1.3 Required extensions
 

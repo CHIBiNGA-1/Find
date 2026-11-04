@@ -1,5 +1,6 @@
 const PATHS = {
   book: "M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z",
+  pencil: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z",
   laptop: "M5 6h14v9H5zM3 19h18",
   chair: "M7 4h10v7H7zM6 11h12v3H6zM8 14v6M16 14v6",
   shirt: "M8 4 3 7l2 4 3-1v10h8V10l3 1 2-4-5-3a4 4 0 0 1-8 0z",
@@ -41,4 +42,4 @@ export function Icon({ name, size = 20, className = "", label, filled = false }:
       className={className} {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}><path d={PATHS[name]} /></svg>
   );
 }
-export const CATEGORY_ICON: Record<string, IconName> = { textbooks: "book", electronics: "laptop", furniture: "chair", clothing: "shirt", services: "wrench", other: "box" };
+export const CATEGORY_ICON: Record<string, IconName> = { textbooks: "book", electronics: "laptop", furniture: "chair", clothing: "shirt", services: "wrench", stationery: "pencil", other: "box" };

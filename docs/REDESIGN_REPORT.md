@@ -50,9 +50,9 @@ State: **release candidate, not production verified.** See "Verification" for ex
 | Types | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | 0 errors, 1 warning (config file default export) |
 | Unit | `npm test` | 66 of 66 pass |
-| DB | `npm run test:db` | 12 migrations apply on PostgreSQL 16; pgTAP 69 of 69 pass (19, 18, 23, 9) |
+| DB | `npm run test:db` | 13 migrations apply on PostgreSQL 16; pgTAP 70 of 70 pass (19, 18, 23, 9, 1) |
 | Build | `next build` | Pass, 28 routes; warning about Supabase in Edge middleware (harmless) |
-| Browser, mock backend | `cd e2e && npm test` | 40 of 40 renders clean (20 screens, 390px and 1280px); 0 axe-core WCAG 2.2 A/AA violations; 33 of 33 interaction checks (including throttled-upload progress, drag and keyboard reorder, and the push webhook over HTTP) |
+| Browser, mock backend | `cd e2e && npm test` | 40 of 40 renders clean (20 screens, 390px and 1280px); 0 axe-core WCAG 2.2 A/AA violations; 34 of 34 interaction checks (including Stationery category navigation, throttled-upload progress, drag and keyboard reorder, and the push webhook over HTTP) |
 | Dependency audit | `npm audit --omit=dev` | 3 advisories (1 moderate, 2 high); see release guide |
 | **Not run** | Anything against a real Supabase project; real email, storage and realtime; **push delivery through a real push service to a real device**; touch drag on a physical screen; screen-reader testing; load testing; Render | Not run |
 Automated axe checks cover only part of WCAG; manual assistive-technology testing is still required.

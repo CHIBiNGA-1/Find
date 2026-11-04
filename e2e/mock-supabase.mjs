@@ -3,7 +3,7 @@ import http from "node:http";
 const U = "00000000-0000-4000-8000-000000000001", S = "00000000-0000-4000-8000-000000000002", UNI = "00000000-0000-4000-8000-0000000000aa";
 const id = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const ago = (m) => new Date(Date.now() - m * 60000).toISOString();
-const cats = [["textbooks", "Textbooks"], ["electronics", "Electronics"], ["furniture", "Furniture"], ["clothing", "Clothing"], ["services", "Services"], ["other", "Other"]]
+const cats = [["textbooks", "Textbooks"], ["electronics", "Electronics"], ["furniture", "Furniture"], ["clothing", "Clothing"], ["services", "Services"], ["stationery", "Stationery"], ["other", "Other"]]
   .map(([slug, name], i) => ({ id: id(100 + i), slug, name, parent_id: null }));
 cats.push({ id: id(200), slug: "textbooks-course", name: "Course textbooks", parent_id: id(100) }, { id: id(201), slug: "electronics-phones", name: "Phones and tablets", parent_id: id(101) });
 const mk = (n, title, price, cond, cat, mins) => ({ id: id(n), university_id: UNI, seller_id: n % 3 ? S : U, category_id: cat, title, description: "Barely used. Pickup near the main library.\nHappy to meet in the afternoon.", price_minor: price, currency_code: "ZMW", condition: cond, status: "active", published_at: ago(mins), meeting_preferences: "Library entrance, weekdays after 4pm", campus_area: "Great East Road campus", profiles: { display_name: n % 3 ? "Chanda M." : "Mwansa" } });

@@ -13,6 +13,7 @@ const id = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const { srv, rpcLog } = await start();
 const root = new URL("..", import.meta.url).pathname;
 const app = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], { cwd: root, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-local-mock-tests-only", NEXT_PUBLIC_VAPID_PUBLIC_KEY: "BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs", VAPID_PRIVATE_KEY: "z1dZ8B1kCagB3g5aF66c8nJmNYy2K1CY86kB14TWP_U", VAPID_SUBJECT: "mailto:test@example.com", SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-mock-tests-only", PUSH_WEBHOOK_SECRET: "test-webhook-secret" }, stdio: "ignore" });
+process.once("exit", () => { if (app.exitCode === null) app.kill(); });
 let serverReady = false;
 for (let i = 0; i < 60 && app.exitCode === null; i++) {
   try {
@@ -79,6 +80,7 @@ async function fresh(vp, path) { const pg = await browser.newPage(); await pg.se
   const tabs = await pg.$$eval('nav[aria-label="Primary"].tabbar a, .tabbar a', (a) => a.map((x) => x.textContent.trim()));
   check("mobile: bottom bar has the five destinations", ["Home", "Explore", "Sell", "Messages", "You"].every((t) => tabs.some((x) => x.includes(t))), tabs.join("|"));
   check("mobile: sidebar hidden", await pg.$eval(".rail", (e) => getComputedStyle(e).display === "none"));
+  check("home: Stationery appears in the category navigation", await pg.$eval('nav[aria-label="Categories"]', (nav) => nav.textContent.includes("Stationery")));
   await pg.close();
   pg = await fresh(VIEWPORTS.desktop, "/");
   check("desktop: sidebar visible, bottom bar hidden", await pg.evaluate(() => getComputedStyle(document.querySelector(".rail")).display !== "none" && getComputedStyle(document.querySelector(".tabbar")).display === "none"));

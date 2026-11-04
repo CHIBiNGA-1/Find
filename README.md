@@ -6,7 +6,7 @@ University marketplace and campus community PWA. Next.js (App Router) + Supabase
 
 The product has been redesigned end to end on the existing stack (Next.js App Router, Supabase). See `docs/REDESIGN_REPORT.md` for what changed, the feature-preservation map and the verification evidence, and `docs/RELEASE.md` for deployment, migration and rollback.
 
-What has been verified, and what has not, is stated in the report. In short: typecheck, lint, unit tests, all 12 migrations with pgTAP on PostgreSQL 16, the production build, and browser tests against a **mock** backend pass. Nothing has been run against a real Supabase project, and no migration has been applied to production.
+What has been verified, and what has not, is stated in the report. In short: typecheck, lint, unit tests, all 13 migrations with pgTAP on PostgreSQL 16, the production build, and browser tests against a **mock** backend pass. Nothing has been run against a real Supabase project, and no migration has been applied to production.
 
 ## Setup
 1. `npm install`
