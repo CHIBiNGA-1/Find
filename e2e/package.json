@@ -1,0 +1,14 @@
+{
+  "name": "find-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Browser smoke and interaction tests against a mock Supabase. Kept separate so the app does not depend on a bundled browser.",
+  "scripts": {
+    "test": "node smoke.mjs"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^153.0.0",
+    "axe-core": "^4.14.0",
+    "puppeteer-core": "^25.16.0"
+  }
+}

@@ -1,6 +1,8 @@
 # CampusHive — Session Handoff Notes
 *Prepared: November 2026 · Production Hardening Sprint*
 
+> Historical handoff from an earlier project state; details below are not current. For this release candidate, use [README.md](./README.md), [docs/REDESIGN_REPORT.md](./docs/REDESIGN_REPORT.md), and [docs/RELEASE.md](./docs/RELEASE.md).
+
 ---
 
 ## What Was Done This Session

@@ -2,15 +2,11 @@
 
 University marketplace and campus community PWA. Next.js (App Router) + Supabase.
 
-## Status (pre-release; not approved for production)
+## Status: redesign release candidate (not production verified)
 
-The repository contains the initial marketplace, university membership and moderation flows, listing management, saved listings, search, two-party messaging, requests, lost-and-found, exchange-linked reviews, account settings, account deletion, PWA shell, and deployment/operations documentation.
+The product has been redesigned end to end on the existing stack (Next.js App Router, Supabase). See `docs/REDESIGN_REPORT.md` for what changed, the feature-preservation map and the verification evidence, and `docs/RELEASE.md` for deployment, migration and rollback.
 
-A prior engineering handoff records a successful production build and 54 passing unit tests on its original machine. Those results have **not** been independently reproduced in the current delivery environment. The current package has no installed `node_modules`; dependency installation timed out during this review, so this delivery has not been build- or test-verified here.
-
-The latest hardening change is migration `0010_account_deletion_exchange_cleanup.sql`, which removes exchange rows belonging to the account before profile deletion so the `ON DELETE RESTRICT` conversation reference does not block account deletion. Storage cleanup now fails closed, checks listing/removal errors, paginates storage listings, and traverses nested folders before the database deletion is attempted.
-
-**Do not deploy this repository to the public as a production service yet.** See `docs/PRODUCTION_READINESS_AUDIT.md` for verified findings, release blockers, and the exact checks still required.
+What has been verified, and what has not, is stated in the report. In short: typecheck, lint, unit tests, all 12 migrations with pgTAP on PostgreSQL 16, the production build, and browser tests against a **mock** backend pass. Nothing has been run against a real Supabase project, and no migration has been applied to production.
 
 ## Setup
 1. `npm install`
@@ -18,11 +14,15 @@ The latest hardening change is migration `0010_account_deletion_exchange_cleanup
 3. Apply `supabase/migrations/*.sql` (Supabase CLI: `supabase db push`).
 4. `npm run dev`
 
-## Known gaps to close before launch
-- Reproduce dependency installation, typecheck, unit tests and production build on a clean release environment.
-- Apply all migrations and run pgTAP against a disposable Supabase project.
-- Complete end-to-end, accessibility, responsive and security testing.
-- Configure and verify real production Auth, email, storage, monitoring, backups and deployment.
-- Implement or explicitly defer push notifications; the settings screen currently labels them unavailable.
+## Testing
+| Command | What it checks |
+|---|---|
+| `npm run typecheck` / `npm run lint` | TypeScript and ESLint |
+| `npm test` | Unit tests of the real modules in `src/lib` |
+| `npm run test:db` | Applies every migration to a throwaway local PostgreSQL and runs the pgTAP suites (`supabase/tests`) |
+| `npm run build:e2e`, then `cd e2e && npm install && npm test` | Browser render, accessibility and interaction tests against a mock Supabase, including uploads, drag reorder and the push webhook (see `e2e/README.md`) |
 
-See `docs/PRODUCTION_READINESS_AUDIT.md` for the release decision and evidence.
+## Known gaps before launch
+See "Known limitations" in `docs/RELEASE.md`. The main ones: no test has run against a real Supabase project, push delivery needs a real-device check after you configure it (see `docs/RELEASE.md`, step 6), and Next.js 15 carries advisories whose fix is a major upgrade.
+
+The earlier audit is kept in `docs/PRODUCTION_READINESS_AUDIT.md` for history.

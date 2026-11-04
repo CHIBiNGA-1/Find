@@ -6,11 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test $(find src -name '*.test.ts' | tr '\n' ' ')",
     "test:watch": "tsx --test --watch $(find src -name '*.test.ts' | tr '\n' ' ')",
-    "test:coverage": "tsx --test --experimental-test-coverage $(find src -name '*.test.ts' | tr '\n' ' ')"
+    "test:coverage": "tsx --test --experimental-test-coverage $(find src -name '*.test.ts' | tr '\n' ' ')",
+    "build:e2e": "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=anon-key-for-local-mock-tests-only NEXT_PUBLIC_VAPID_PUBLIC_KEY=BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs next build",
+    "test:db": "supabase/tests/run_local.sh"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
@@ -19,14 +21,20 @@
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
+    "web-push": "^3.6.7",
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/web-push": "^3.6.4",
     "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.29",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.23.15",
     "typescript": "^5.6.0",

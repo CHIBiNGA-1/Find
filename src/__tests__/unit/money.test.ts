@@ -1,98 +1,29 @@
-/**
- * Unit tests for src/lib/money.ts
- * Run with: npm test
- * Uses node:test — no native binary dependency.
- */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { parseMinor, minorToInput, formatMoney } from "@/lib/money";
 
-// ── inline the functions under test (no Next.js / Rollup needed) ─────────────
-
-/** Parse a decimal string like "12.50" into minor units (e.g. 1250). */
-function parseMinor(value: string): number | null {
-  const trimmed = value.replace(",", ".").trim();
-  if (trimmed === "") return null;
-  const n = Number(trimmed);
-  if (!isFinite(n) || n < 0) return null;
-  return Math.round(n * 100);
-}
-
-/** Format minor units back to a locale-aware string. */
-function formatMoney(minor: number, currency: string): string {
-  const major = minor / 100;
-  try {
-    return new Intl.NumberFormat("en", { style: "currency", currency }).format(major);
-  } catch {
-    return `${currency} ${major.toFixed(2)}`;
-  }
-}
-
-// ── parseMinor ────────────────────────────────────────────────────────────────
-
-describe("parseMinor", () => {
-  it("converts whole number string", () => {
-    assert.equal(parseMinor("5"), 500);
+describe("parseMinor (real module)", () => {
+  it("parses whole and decimal amounts exactly", () => {
+    assert.equal(parseMinor("125"), 12500); assert.equal(parseMinor("125.5"), 12550);
+    assert.equal(parseMinor("0.07"), 7); assert.equal(parseMinor("19.99"), 1999);
   });
-
-  it("converts decimal string with 2 dp", () => {
-    assert.equal(parseMinor("12.50"), 1250);
+  it("accepts a comma decimal separator", () => assert.equal(parseMinor("150,50"), 15050));
+  it("trims whitespace", () => assert.equal(parseMinor("  10 "), 1000));
+  it("rejects empty, negative, 3 decimals, text, and Infinity", () => {
+    for (const bad of ["", "-1", "1.234", "abc", "Infinity", "1e5", "1,234.5", "1,2,3"]) assert.equal(parseMinor(bad), null, bad);
   });
-
-  it("handles comma decimal separator", () => {
-    assert.equal(parseMinor("12,50"), 1250);
-  });
-
-  it("rounds floating-point imprecision", () => {
-    assert.equal(parseMinor("0.10"), 10);
-    assert.equal(parseMinor("0.07"), 7);
-  });
-
-  it("returns null for empty string", () => {
-    assert.equal(parseMinor(""), null);
-  });
-
-  it("returns null for non-numeric input", () => {
-    assert.equal(parseMinor("abc"), null);
-  });
-
-  it("returns null for negative value", () => {
-    assert.equal(parseMinor("-1"), null);
-  });
-
-  it("returns null for Infinity", () => {
-    assert.equal(parseMinor("Infinity"), null);
-  });
-
-  it("returns 0 for '0'", () => {
-    assert.equal(parseMinor("0"), 0);
-  });
-
-  it("handles leading/trailing whitespace", () => {
-    assert.equal(parseMinor("  25.00  "), 2500);
-  });
+  it("rejects more than 9 integer digits", () => assert.equal(parseMinor("1234567890"), null));
+  it("is exact where floats are not (0.1 + 0.2 style inputs)", () => assert.equal(parseMinor("1.15"), 115));
 });
-
-// ── formatMoney ───────────────────────────────────────────────────────────────
-
+describe("minorToInput", () => {
+  it("round-trips with parseMinor", () => {
+    for (const m of [0, 1, 7, 99, 100, 101, 1005, 12345, 99999999]) assert.equal(parseMinor(minorToInput(m)), m);
+  });
+  it("omits cents when zero", () => assert.equal(minorToInput(12300), "123"));
+});
 describe("formatMoney", () => {
-  it("formats ZMW minor units", () => {
-    const result = formatMoney(5000, "ZMW");
-    assert.ok(result.includes("50"), `expected '50' in '${result}'`);
-  });
-
-  it("formats USD minor units", () => {
-    const result = formatMoney(999, "USD");
-    assert.ok(result.includes("9.99"), `expected '9.99' in '${result}'`);
-  });
-
-  it("formats zero", () => {
-    const result = formatMoney(0, "ZMW");
-    assert.ok(result.includes("0"), `expected '0' in '${result}'`);
-  });
-
-  it("falls back gracefully for unknown currency code", () => {
-    const result = formatMoney(100, "XYZ");
-    // either Intl handled it or we fell back
-    assert.ok(result.length > 0);
+  it("formats with the given currency and drops zero cents", () => {
+    assert.match(formatMoney(15000, "ZMW"), /150/); assert.doesNotMatch(formatMoney(15000, "ZMW"), /\.00/);
+    assert.match(formatMoney(15050, "ZMW"), /150[.,]50/);
   });
 });

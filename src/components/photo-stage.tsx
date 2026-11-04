@@ -8,14 +8,14 @@ type Img = { url: string; w: number; h: number; alt: string };
 export function PhotoStage({ images }: { images: Img[] }) {
   const [i, setI] = useState(0);
   const n = images.length, img = images[i];
-  if (!img) return <div className="t-label grid aspect-[4/5] place-items-center rounded-[var(--radius-lg)] bg-sunken">No photo</div>;
+  if (!img) return <div className="t-meta grid aspect-[4/5] place-items-center rounded-[var(--radius-lg)] bg-sunken">No photo</div>;
   const go = (d: number) => setI((x) => (x + d + n) % n);
   const nav = "absolute top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white text-ink shadow-[0_2px_10px_rgb(14_18_64/0.18)]";
   return (
     <div role="group" aria-roledescription="carousel" aria-label="Photos">
       <div className="relative overflow-hidden rounded-[var(--radius-lg)] bg-sunken">
         <div className="grid aspect-[4/5] place-items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img src={img.url} width={img.w} height={img.h} alt={img.alt} className="max-h-full max-w-full object-contain" />
         </div>
         {n > 1 && (<>
@@ -29,7 +29,7 @@ export function PhotoStage({ images }: { images: Img[] }) {
             <li key={k} className="shrink-0">
               <button type="button" onClick={() => setI(k)} aria-label={`Photo ${k + 1} of ${n}`} aria-current={k === i}
                 className={`block size-16 overflow-hidden rounded-[var(--radius-sm)] bg-sunken ${k === i ? "ring-2 ring-ink ring-offset-2" : "opacity-70 hover:opacity-100"}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                { }
                 <img src={m.url} alt="" className="size-full object-cover" /></button></li>))}
         </ul>)}
       <p aria-live="polite" className="sr-only">Photo {i + 1} of {n}</p>

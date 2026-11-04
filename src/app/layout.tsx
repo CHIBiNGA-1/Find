@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource-variable/bricolage-grotesque/standard.css";
+import "@fontsource-variable/bricolage-grotesque/wdth.css";
 import { ServiceWorkerRegistration } from "@/components/sw-registration";
 import "./globals.css";
 

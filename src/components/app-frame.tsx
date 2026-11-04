@@ -1,11 +1,9 @@
 "use client";
 import { usePathname } from "next/navigation";
 
-/** Page container. Bottom padding clears whatever sits at the bottom of the phone screen. */
+/** Content column. Clears the rail on desktop and the tab bar on phones; chat and listing screens manage their own bottom bar. */
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const pad = /^\/messages\/[^/]+$/.test(path) ? "pb-0"
-    : /^\/listing\/[^/]+$/.test(path) ? "pb-[calc(6rem+env(safe-area-inset-bottom))]"
-    : "pb-[calc(var(--bar-h)+env(safe-area-inset-bottom)+1.5rem)]";
-  return <div className={`wrap pt-5 md:pb-0 md:pt-10 ${pad}`}>{children}</div>;
+  const pad = /^\/messages\/[^/]+$/.test(path) ? "!pb-0 md:!pb-4" : /^\/listing\/[^/]+$/.test(path) ? "!pb-[calc(6rem+env(safe-area-inset-bottom))] md:!pb-16" : "";
+  return <div className={`main-col ${pad}`}><div className="wrap">{children}</div></div>;
 }

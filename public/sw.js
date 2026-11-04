@@ -1,4 +1,5 @@
-/* f!nd service worker v2
+/* f!nd service worker v3
+ *   Push              shows a content-free notification (who it is from, not what it says); click opens the conversation
  *   Navigation        network-first (with navigation preload), offline page if the network fails
  *   _next/static      cache-first (content-hashed)
  *   icons, hero image stale-while-revalidate (instant, refreshed in the background)
@@ -78,4 +79,31 @@ self.addEventListener("notificationclick", (event) => {
       return open ? open.navigate(url).then((c) => c && c.focus()) : self.clients.openWindow(url);
     }),
   );
+});
+
+// ── Web Push ────────────────────────────────────────────────────────────────────────────────────────────────────
+// The server sends { title, body, url, tag } and never message text. Same-origin paths only.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { /* malformed payload: fall back to a generic notice */ }
+  const title = typeof data.title === "string" && data.title ? data.title.slice(0, 80) : "f!nd";
+  const body = typeof data.body === "string" ? data.body.slice(0, 140) : "You have a new message";
+  const url = typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//") ? data.url : "/messages";
+  event.waitUntil((async () => {
+    // If the app is open and visible the live inbox already shows it; don't buzz twice.
+    const open = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    if (open.some((c) => c.visibilityState === "visible")) return;
+    await self.registration.showNotification(title, { body, tag: typeof data.tag === "string" ? data.tag : "message", data: { url }, icon: "/icons/icon-192.png", badge: "/icons/icon-192.png" });
+  })());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const raw = event.notification.data && event.notification.data.url;
+  const url = typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/messages";
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) { if ("focus" in w) { await w.focus(); if ("navigate" in w) { try { await w.navigate(url); } catch { /* cross-origin or detached: ignore */ } } return; } }
+    await self.clients.openWindow(url);
+  })());
 });

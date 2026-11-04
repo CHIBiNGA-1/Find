@@ -29,7 +29,7 @@ export function InstallPrompt({ variant = "banner", className = "" }: { variant?
 
   return (
     <section aria-label="Install f!nd" className={`flex items-center gap-4 rounded-[var(--radius-lg)] bg-sunken p-4 ${className}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      { }
       <img src="/icons/icon-192.png" alt="" width={48} height={48} className="size-12 shrink-0 rounded-[12px]" />
       <div className="min-w-0 flex-1">
         <p className="font-bold">Add f!nd to your home screen</p>

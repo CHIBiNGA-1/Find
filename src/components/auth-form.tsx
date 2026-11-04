@@ -8,7 +8,7 @@ const input = "field mt-1";
 export function AuthForm({ action, mode, next }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   const err = (k: string) => state.fieldErrors?.[k]?.[0];
-  if (state.ok) return <p role="status" className="card p-5">{state.message}</p>;
+  if (state.ok) return <p role="status" className="note">{state.message}</p>;
   return (
     <form action={formAction} className="space-y-4" noValidate>
       {next && <input type="hidden" name="next" value={next} />}

@@ -1,77 +1,106 @@
 import Link from "next/link";
 import { getContext } from "@/lib/session";
 import { coverImages } from "@/lib/listings/queries";
+import { categoryTree, topLevelOf, type Category } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
+import { EmptyState } from "@/components/empty-state";
 import { Icon, CATEGORY_ICON } from "@/components/icons";
+import { InstallPrompt } from "@/components/install-prompt";
 import { formatMoney } from "@/lib/money";
 import { timeAgo } from "@/lib/time";
-import { InstallPrompt } from "@/components/install-prompt";
 
 export const dynamic = "force-dynamic";
-type Row = { id: string; title: string; price_minor: number; published_at: string | null };
+type Row = { id: string; title: string; price_minor: number; published_at: string | null; seller_id: string };
+
+function Strip({ title, href, children }: { title: string; href?: string; children: React.ReactNode }) {
+  return (
+    <section aria-label={title}>
+      <div className="mb-4 flex items-baseline justify-between gap-4"><h2 className="t-section">{title}</h2>{href && <Link href={href} className="link text-[0.9rem]">See all</Link>}</div>
+      {children}
+    </section>
+  );
+}
 
 export default async function Home() {
-  const { supabase, universityId, currency } = await getContext();
+  const { supabase, userId, universityId, currency, timezone } = await getContext();
   const now = new Date().toISOString();
-  const [recent, trending, cats, uni, reqs, lost] = await Promise.all([
-    supabase.rpc("search_listings", { uni: universityId, lim: 8 }),
-    supabase.rpc("trending_listings", { uni: universityId, lim: 5 }),
-    supabase.from("categories").select("id, slug, name").order("name"),
-    supabase.from("universities").select("name").eq("id", universityId).maybeSingle(),
-    supabase.from("requests").select("id, title, budget_minor, currency_code, created_at")
-      .eq("university_id", universityId).eq("status", "open").gt("expires_at", now).order("created_at", { ascending: false }).limit(4),
-    supabase.from("lost_found_reports").select("id, kind, title, area, created_at")
-      .eq("university_id", universityId).eq("status", "open").order("created_at", { ascending: false }).limit(4),
+  const [recent, trending, cats, reqs, lost, savedCats] = await Promise.all([
+    supabase.rpc("search_listings", { uni: universityId, lim: 12 }),
+    supabase.rpc("trending_listings", { uni: universityId, lim: 4 }),
+    supabase.from("categories").select("id, slug, name, parent_id"),
+    supabase.from("requests").select("id, title, budget_minor, currency_code, created_at").eq("university_id", universityId).eq("status", "open").gt("expires_at", now).order("created_at", { ascending: false }).limit(4),
+    supabase.from("lost_found_reports").select("id, kind, title, area, created_at").eq("university_id", universityId).eq("status", "open").order("created_at", { ascending: false }).limit(4),
+    supabase.from("saved_listings").select("listings(category_id)").order("created_at", { ascending: false }).limit(20),
   ]);
+  const all = (cats.data ?? []) as Category[];
+  const tree = categoryTree(all);
+
+  // "Because you saved": the category you save from most. Derived from real saves only; absent until you have some.
+  const counts = new Map<string, number>();
+  for (const s of savedCats.data ?? []) {
+    const top = topLevelOf(all, (s.listings as unknown as { category_id: string | null } | null)?.category_id);
+    if (top) counts.set(top, (counts.get(top) ?? 0) + 1);
+  }
+  const favId = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const fav = favId ? all.find((c) => c.id === favId) : undefined;
+  const forYouRaw = favId ? await supabase.rpc("search_listings", { uni: universityId, cat: favId, lim: 9 }) : null;
+
   const recentRows = (recent.data ?? []) as Row[], trendRows = (trending.data ?? []) as Row[];
-  const covers = await coverImages([...new Set([...recentRows, ...trendRows].map((l) => l.id))]);
-  const uniName = uni.data?.name ?? "Campus";
-  const card = (l: Row) => <ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} image={covers.get(l.id)?.url} publishedAt={l.published_at} />;
+  const forYou = ((forYouRaw?.data ?? []) as Row[]).filter((l) => l.seller_id !== userId).slice(0, 4);
+  const covers = await coverImages([...new Set([...recentRows, ...trendRows, ...forYou].map((l) => l.id))]);
+  const card = (l: Row, priority = false) => <ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} image={covers.get(l.id)?.url} publishedAt={l.published_at} priority={priority} />;
 
   return (
-    <main className="find-home space-y-10 md:space-y-14">
-      <section className="find-home-top" aria-label="Campus marketplace">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="find-eyebrow">{uniName}</p>
-            <h1 className="find-heading">The campus marketplace<span>.</span></h1>
-          </div>
-          <Link href="/sell" className="find-sell-link"><Icon name="plus" size={18} /> List an item</Link>
-        </div>
-        <form action="/explore" method="get" role="search" className="find-search mt-7">
-          <Icon name="search" size={21} className="shrink-0 text-muted" />
-          <label className="min-w-0 flex-1"><span className="sr-only">Search listings</span><input name="q" type="search" placeholder="Search anything on campus" /></label>
-          <button type="submit" aria-label="Search"><Icon name="arrow" size={20} /></button>
+    <main className="space-y-12">
+      <h1 className="sr-only">Home</h1>
+      <section aria-label="Search and categories" className="space-y-4">
+        <form action="/explore" method="get" role="search" className="relative">
+          <label><span className="sr-only">Search listings</span>
+            <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+            <input name="q" type="search" placeholder="Search listings" className="field !min-h-14 !pl-12 !pr-28" /></label>
+          <button className="btn btn-primary btn-sm absolute right-2 top-1/2 -translate-y-1/2">Search</button>
         </form>
-        {cats.data && cats.data.length > 0 && <nav aria-label="Shop by category" className="find-categories no-scrollbar mt-5">
-          {cats.data.map((c) => <Link key={c.id} href={`/explore?cat=${c.id}`}><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={17} />{c.name}</Link>)}
-        </nav>}
+        <nav aria-label="Categories"><ul className="no-scrollbar -mx-[var(--gutter)] flex gap-2 overflow-x-auto px-[var(--gutter)]">
+          {tree.map((c) => <li key={c.id} className="shrink-0"><Link href={`/explore?cat=${c.id}`} className="chip"><Icon name={CATEGORY_ICON[c.slug] ?? "tag"} size={17} />{c.name}</Link></li>)}
+        </ul></nav>
+        <nav aria-label="Campus boards" className="flex gap-2 md:hidden">
+          <Link href="/requests" className="chip"><Icon name="megaphone" size={17} />Requests</Link>
+          <Link href="/lost-found" className="chip"><Icon name="pin" size={17} />Lost and found</Link>
+        </nav>
       </section>
 
       <InstallPrompt className="md:hidden" />
 
-      <section aria-labelledby="recent" className="find-section">
-        <div className="find-section-head"><div><p className="find-eyebrow">Fresh on campus</p><h2 id="recent">Just listed</h2></div><Link href="/explore" className="find-text-link">View all <Icon name="arrow" size={16} /></Link></div>
-        {recentRows.length ? <ul className="find-listing-grid">{recentRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul> :
-          <div className="find-empty"><p>Nothing here yet.</p><Link href="/sell" className="find-text-link">Be the first to list <Icon name="arrow" size={16} /></Link></div>}
-      </section>
+      <Strip title="Just listed" href="/explore">
+        {recentRows.length
+          ? <ul className="grid-listings">{recentRows.map((l, i) => <li key={l.id}>{card(l, i < 4)}</li>)}</ul>
+          : <EmptyState title="Nothing listed yet." hint="Listings from verified students at your university appear here." href="/sell" action="List the first item" />}
+      </Strip>
 
-      {trendRows.length > 0 && <section aria-labelledby="trend-h" className="find-section">
-        <div className="find-section-head"><div><p className="find-eyebrow">Popular right now</p><h2 id="trend-h">Getting attention</h2></div><Link href="/explore" className="find-text-link">Explore <Icon name="arrow" size={16} /></Link></div>
-        <ul className="find-trending-grid">{trendRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
-      </section>}
+      {forYou.length > 0 && fav && <Strip title={`More ${fav.name.toLowerCase()}`} href={`/explore?cat=${fav.id}`}>
+        <ul className="grid-listings">{forYou.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
+      </Strip>}
 
-      <section className="find-community" aria-label="Campus community">
-        <div className="find-community-head"><div><p className="find-eyebrow">Beyond the marketplace</p><h2>Campus, connected.</h2></div></div>
-        <div className="find-community-grid">
-          <div className="find-community-panel"><div className="find-panel-title"><h3>Wanted</h3><Link href="/requests" aria-label="All requests"> <Icon name="arrow" size={18} /></Link></div>
-            {reqs.data?.length ? <ul>{reqs.data.map((r) => <li key={r.id}><Link href={`/requests/${r.id}`}><span><strong>{r.title}</strong><small>{timeAgo(r.created_at)}</small></span>{r.budget_minor != null && <b>{formatMoney(r.budget_minor, r.currency_code)}</b>}</Link></li>)}</ul> : <p className="find-quiet">No open requests.</p>}
-            <Link href="/requests/new" className="find-inline-action">Post a request <Icon name="arrow" size={15} /></Link>
-          </div>
-          <div className="find-community-panel"><div className="find-panel-title"><h3>Lost & found</h3><Link href="/lost-found" aria-label="All lost and found reports"><Icon name="arrow" size={18} /></Link></div>
-            {lost.data?.length ? <ul>{lost.data.map((r) => <li key={r.id}><Link href={`/lost-found/${r.id}`}><span><strong>{r.title}</strong><small>{r.area} · {timeAgo(r.created_at)}</small></span><em>{r.kind === "lost" ? "Lost" : "Found"}</em></Link></li>)}</ul> : <p className="find-quiet">No reports right now.</p>}
-            <Link href="/lost-found/new" className="find-inline-action">Report an item <Icon name="arrow" size={15} /></Link>
-          </div>
+      {trendRows.length > 0 && <Strip title="Saved most this week">
+        <ul className="grid-listings">{trendRows.map((l) => <li key={l.id}>{card(l)}</li>)}</ul>
+      </Strip>}
+
+      <section aria-label="Campus boards" className="grid gap-10 md:grid-cols-2 md:gap-12">
+        <div>
+          <div className="mb-3 flex items-baseline justify-between"><h2 className="t-section">Wanted</h2><Link href="/requests/new" className="link text-[0.9rem]">Post a request</Link></div>
+          {reqs.data?.length ? <ul className="rows">{reqs.data.map((r) => (
+            <li key={r.id}><Link href={`/requests/${r.id}`} className="row-link justify-between">
+              <span className="min-w-0"><span className="block truncate font-semibold">{r.title}</span><span className="t-meta block">{timeAgo(r.created_at, Date.now(), timezone)}</span></span>
+              {r.budget_minor != null && <span className="shrink-0 font-bold tnum">{formatMoney(r.budget_minor, r.currency_code)}</span>}</Link></li>))}</ul>
+            : <p className="t-meta border-y border-line py-6">No open requests. <Link href="/requests/new" className="link">Ask for something</Link></p>}
+        </div>
+        <div>
+          <div className="mb-3 flex items-baseline justify-between"><h2 className="t-section">Lost and found</h2><Link href="/lost-found/new" className="link text-[0.9rem]">Report an item</Link></div>
+          {lost.data?.length ? <ul className="rows">{lost.data.map((r) => (
+            <li key={r.id}><Link href={`/lost-found/${r.id}`} className="row-link justify-between">
+              <span className="min-w-0"><span className="block truncate font-semibold">{r.title}</span><span className="t-meta block truncate">{r.area}, {timeAgo(r.created_at, Date.now(), timezone)}</span></span>
+              <span className={`tag shrink-0 ${r.kind === "lost" ? "tag-ink" : ""}`}>{r.kind === "lost" ? "Lost" : "Found"}</span></Link></li>))}</ul>
+            : <p className="t-meta border-y border-line py-6">Nothing reported right now.</p>}
         </div>
       </section>
     </main>

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
-import { SiteFooter } from "@/components/site-footer";
 import { AppFrame } from "@/components/app-frame";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { ConnectionBanner } from "@/components/connection-banner";
@@ -12,17 +11,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
-  const { data } = await supabase.from("university_memberships").select("id").eq("status", "verified").limit(1);
-  if (!data?.length) redirect("/onboarding");
-  const { data: unreadRaw } = await supabase.rpc("unread_counts");
+  const [{ data: m }, { data: unreadRaw }] = await Promise.all([
+    supabase.from("university_memberships").select("universities(name)").eq("status", "verified").limit(1).maybeSingle(),
+    supabase.rpc("unread_counts"),
+  ]);
+  if (!m) redirect("/onboarding");
   const total = ((unreadRaw ?? []) as { conversation_id: string; unread: number }[]).reduce((n, u) => n + Number(u.unread), 0);
+  const university = (m.universities as unknown as { name: string } | null)?.name ?? "Campus";
   return (
-    <div>
-      <AppNav unread={total} />
+    <div className="shell">
+      <AppNav unread={total} university={university} />
       <ConnectionBanner />
       <PullToRefresh />
       <AppFrame>{children}</AppFrame>
-      <SiteFooter />
     </div>
   );
 }

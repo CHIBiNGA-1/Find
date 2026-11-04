@@ -8,9 +8,9 @@ export const metadata = { title: "Create account" };
 
 export default function SignUp() {
   return (
-    <main className="mx-auto max-w-sm px-[var(--space-gutter)] py-16">
+    <main className="mx-auto max-w-sm px-[var(--gutter)] py-16">
       <p className="mb-8 text-[3rem] text-brand"><Wordmark /></p>
-      <h1 className="t-title">Join the campus</h1>
+      <h1 className="t-section">Join the campus</h1>
       <p className="mb-2 mt-2 text-muted">f!nd is for verified university students. After you confirm your email, you choose your university and a moderator confirms your membership. Until then you can't see or post listings.</p>
       <p className="mb-6 text-sm text-muted">We only use your email to sign you in and send account notices. Your phone number is never required.</p>
       <AuthForm action={signUp} mode="sign-up" />

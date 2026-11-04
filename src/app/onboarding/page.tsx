@@ -16,7 +16,7 @@ export default async function Onboarding() {
   const uniName = (m?.universities as unknown as { name: string } | null)?.name;
 
   return (
-    <main className="mx-auto max-w-md px-[var(--space-gutter)] py-16">
+    <main className="mx-auto max-w-md px-[var(--gutter)] py-16">
       <p className="mb-8 text-[3rem] text-brand"><Wordmark /></p>
       {!m && (
         <>

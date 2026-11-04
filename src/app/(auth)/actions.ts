@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { safeNext } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 
 export type FormState = { message?: string; fieldErrors?: Record<string, string[]>; ok?: boolean };
@@ -21,7 +22,7 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   // One message for every failure: no account enumeration.
   if (error) return { message: "That email and password don't match. Check them and try again." };
   const next = String(form.get("next") ?? "/");
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
+  redirect(safeNext(next));
 }
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {

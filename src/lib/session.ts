@@ -8,8 +8,12 @@ export const getContext = cache(async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
   const { data } = await supabase.from("university_memberships")
-    .select("university_id, universities(currency_code)").eq("status", "verified").limit(1).maybeSingle();
+    .select("university_id, role, universities(name, currency_code, timezone)").eq("status", "verified").limit(1).maybeSingle();
   if (!data) redirect("/onboarding");
-  const currency = (data.universities as unknown as { currency_code: string } | null)?.currency_code ?? "ZMW";
-  return { supabase, userId: user.id, universityId: data.university_id as string, currency };
+  const uni = data.universities as unknown as { name: string; currency_code: string; timezone: string } | null;
+  return {
+    supabase, userId: user.id, universityId: data.university_id as string,
+    currency: uni?.currency_code ?? "ZMW", timezone: uni?.timezone ?? "Africa/Lusaka", universityName: uni?.name ?? "Campus",
+    isModerator: data.role === "moderator" || data.role === "admin",
+  };
 });

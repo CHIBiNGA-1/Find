@@ -1,112 +1,81 @@
 import Link from "next/link";
 import { getContext } from "@/lib/session";
-import { coverImages } from "@/lib/listings/queries";
-import { parseMinor } from "@/lib/money";
-import { CONDITIONS, CONDITION_LABEL } from "@/lib/listings/schema";
-import { ListingCard } from "@/components/listing-card";
-import { Icon } from "@/components/icons";
+import { parseExplore, exploreHref, defaultSort, SORT_LABEL } from "@/lib/explore-params";
+import { runExplore } from "@/lib/listings/explore";
+import { categoryTree, type Category } from "@/lib/categories";
+import { minorToInput } from "@/lib/money";
+import { CONDITION_LABEL, type CONDITIONS } from "@/lib/listings/schema";
+import { ResultsGrid } from "@/components/results-grid";
+import { EmptyState } from "@/components/empty-state";
 import { FilterSheet } from "@/components/filter-sheet";
+import { Icon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Explore" };
-
-const PAGE = 24;
-type SP = {
-  q?: string; cat?: string; min?: string; max?: string;
-  cond?: string | string[]; at?: string; after?: string;
-};
-type ListingRow = {
-  id: string; title: string; price_minor: number;
-  currency_code: string; condition: string; published_at: string | null;
-};
+type SP = Record<string, string | string[] | undefined>;
 
 export default async function Explore({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const { supabase, universityId, currency } = await getContext();
-  const conds = ([] as string[]).concat(sp.cond ?? []).filter((c) => (CONDITIONS as readonly string[]).includes(c));
+  const query = parseExplore(sp);
+  const { supabase, currency } = await getContext();
+  const [{ data: catRows }, res] = await Promise.all([supabase.from("categories").select("id, slug, name, parent_id"), runExplore(query)]);
+  const result = res;
+  const tree = categoryTree((catRows ?? []) as Category[]);
+  const selected = (catRows ?? []).find((c) => c.id === query.cat);
+  const parent = tree.find((p) => p.id === (selected?.parent_id ?? selected?.id));
 
-  const [{ data: categories }, { data: rows, error }] = await Promise.all([
-    supabase.from("categories").select("id, name").order("name"),
-    supabase.rpc("search_listings", {
-      uni: universityId, q: sp.q || null, cat: sp.cat || null,
-      min_price: sp.min ? (parseMinor(sp.min) ?? null) : null,
-      max_price: sp.max ? (parseMinor(sp.max) ?? null) : null,
-      conds: conds.length ? conds : null,
-      cursor_at: sp.at || null, cursor_id: sp.after || null, lim: PAGE + 1,
-    }),
-  ]);
-
-  const page = ((rows ?? []) as ListingRow[]).slice(0, PAGE);
-  const next = rows && rows.length > PAGE ? page[page.length - 1] : null;
-  const covers = await coverImages(page.map((r) => r.id));
-
-  // Build the current query string (for pagination + clear-filter links)
-  const qs = new URLSearchParams();
-  (["q", "cat", "min", "max"] as const).forEach((k) => sp[k] && qs.set(k, sp[k]!));
-  conds.forEach((c) => qs.append("cond", c));
-
-  const hasFilters = !!(sp.q || sp.cat || sp.min || sp.max || conds.length);
-  const selectedCat = categories?.find((c) => c.id === sp.cat);
-
-  const catHref = (id?: string) => {
-    const p = new URLSearchParams(qs); p.delete("cat"); if (id) p.set("cat", id);
-    const t = p.toString(); return t ? `/explore?${t}` : "/explore";
-  };
-  const filterCount = (sp.min ? 1 : 0) + (sp.max ? 1 : 0) + conds.length;
+  // Links rebuild from the *validated* query, so a malformed URL can never leak back into the page.
+  const base: SP = { q: query.q ?? undefined, cat: query.cat ?? undefined, min: query.min !== null ? minorToInput(query.min) : undefined, max: query.max !== null ? minorToInput(query.max) : undefined, cond: query.conds, sort: query.sort === defaultSort(query.q) ? undefined : query.sort };
+  const href = (o: Record<string, string | string[] | null>) => exploreHref(base, o);
+  const filterCount = (query.min !== null ? 1 : 0) + (query.max !== null ? 1 : 0) + query.conds.length + (query.sort !== defaultSort(query.q) ? 1 : 0);
+  const hasAny = !!(query.q || query.cat || filterCount);
+  const active: { label: string; remove: string }[] = [
+    ...(query.min !== null ? [{ label: `From ${minorToInput(query.min)}`, remove: href({ min: null }) }] : []),
+    ...(query.max !== null ? [{ label: `Up to ${minorToInput(query.max)}`, remove: href({ max: null }) }] : []),
+    ...query.conds.map((c) => ({ label: CONDITION_LABEL[c as (typeof CONDITIONS)[number]], remove: href({ cond: query.conds.filter((x) => x !== c) }) })),
+    ...(query.sort !== defaultSort(query.q) ? [{ label: SORT_LABEL[query.sort], remove: href({ sort: null }) }] : []),
+  ];
+  const gridParams: Record<string, string | string[]> = Object.fromEntries(Object.entries(base).filter(([, v]) => v !== undefined && !(Array.isArray(v) && !v.length))) as Record<string, string | string[]>;
 
   return (
     <main>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-[clamp(2rem,1.2rem+3vw,3.25rem)] font-extrabold leading-none [font-stretch:80%]">{selectedCat ? selectedCat.name : sp.q ? `Results for \u201c${sp.q}\u201d` : "Explore"}</h1>
-        {hasFilters && <Link href="/explore" className="link text-[0.9375rem] font-semibold">Clear filters</Link>}
-      </div>
+      <h1 className="t-page">{selected ? selected.name : query.q ? `\u201c${query.q}\u201d` : "Explore"}</h1>
 
-      <form role="search" id="explore-filters" className="mt-6">
-        {sp.cat && <input type="hidden" name="cat" value={sp.cat} />}
-        <div className="flex max-w-2xl gap-2">
-          <label className="relative flex-1"><span className="sr-only">Search listings</span>
-            <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-            <input name="q" type="search" defaultValue={sp.q} placeholder="Search listings" className="field !pl-12" /></label>
-          <button type="submit" className="btn btn-primary">Search</button>
-        </div>
+      <form role="search" id="explore-filters" className="relative mt-5 max-w-2xl">
+        {query.cat && <input type="hidden" name="cat" value={query.cat} />}
+        <label><span className="sr-only">Search listings</span>
+          <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+          <input name="q" type="search" defaultValue={query.q ?? ""} placeholder="Search listings" className="field !pl-12 !pr-28" /></label>
+        <button type="submit" className="btn btn-primary btn-sm absolute right-2 top-1/2 -translate-y-1/2">Search</button>
       </form>
 
-      <ul className="no-scrollbar -mx-[var(--space-gutter)] mt-5 flex gap-2 overflow-x-auto px-[var(--space-gutter)] py-1">
-        <li className="shrink-0">
-          <FilterSheet count={filterCount}>
-            <div><p className="label mb-2">Price</p>
-              <div className="flex gap-2">
-                <input form="explore-filters" name="min" inputMode="decimal" defaultValue={sp.min} aria-label="Minimum price" placeholder="Min" className="field" />
-                <input form="explore-filters" name="max" inputMode="decimal" defaultValue={sp.max} aria-label="Maximum price" placeholder="Max" className="field" /></div></div>
-            <fieldset><legend className="label mb-2">Condition</legend>
-              <div className="flex flex-wrap gap-2">
-                {CONDITIONS.map((c) => (
-                  <label key={c} className="pick"><input form="explore-filters" type="checkbox" name="cond" value={c} defaultChecked={conds.includes(c)} className="sr-only" />{CONDITION_LABEL[c]}</label>))}
-              </div></fieldset>
-          </FilterSheet>
-        </li>
-        <li className="shrink-0"><Link href={catHref()} className="chip" aria-current={!sp.cat ? "true" : undefined}>All</Link></li>
-        {categories?.map((c) => <li key={c.id} className="shrink-0"><Link href={catHref(c.id)} className="chip" aria-current={sp.cat === c.id ? "true" : undefined}>{c.name}</Link></li>)}
-      </ul>
+      <div className="mt-4 space-y-3">
+        <ul className="no-scrollbar -mx-[var(--gutter)] flex gap-2 overflow-x-auto px-[var(--gutter)]">
+          <li className="shrink-0"><FilterSheet count={filterCount} sort={query.sort} hasQuery={!!query.q} min={query.min !== null ? minorToInput(query.min) : ""} max={query.max !== null ? minorToInput(query.max) : ""} conds={query.conds} currency={currency} resetHref={href({ min: null, max: null, cond: [], sort: null })} /></li>
+          <li className="shrink-0"><Link href={href({ cat: null })} className="chip" aria-current={!query.cat ? "true" : undefined}>All</Link></li>
+          {tree.map((c) => <li key={c.id} className="shrink-0"><Link href={href({ cat: c.id })} className="chip" aria-current={parent?.id === c.id && (selected?.id === c.id) ? "true" : undefined}>{c.name}</Link></li>)}
+        </ul>
+        {parent && parent.children.length > 0 && (
+          <ul aria-label={`${parent.name} subcategories`} className="no-scrollbar -mx-[var(--gutter)] flex gap-2 overflow-x-auto px-[var(--gutter)]">
+            {parent.children.map((c) => <li key={c.id} className="shrink-0"><Link href={href({ cat: c.id })} className="chip !min-h-9 !text-[0.85rem]" aria-current={selected?.id === c.id ? "true" : undefined}>{c.name}</Link></li>)}
+          </ul>)}
+        {active.length > 0 && (
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Active filters">
+            {active.map((a) => <li key={a.label}><Link href={a.remove} className="tag" aria-label={`Remove filter: ${a.label}`}>{a.label}<Icon name="close" size={14} className="ml-1" /></Link></li>)}
+            <li><Link href={href({ min: null, max: null, cond: [], sort: null })} className="link-quiet">Clear all</Link></li>
+          </ul>)}
+      </div>
 
-      {error && <p role="alert" className="mt-8 font-medium text-danger">Search isn&rsquo;t working right now. Try again in a moment.</p>}
-      {!error && !page.length && (
-        <div className="mt-10 rounded-[var(--radius-lg)] bg-sunken px-6 py-12 text-center">
-          <p className="text-[1.5rem] font-bold [font-stretch:88%]">No listings match.</p>
-          <p className="t-meta mt-1">Try fewer filters or a simpler search word.</p>
-          {hasFilters && <Link href="/explore" className="btn btn-quiet mt-6">Clear all filters</Link>}
-        </div>)}
-      {!error && page.length > 0 && <p className="t-meta mt-6">{page.length}{next ? "+" : ""} listing{page.length !== 1 ? "s" : ""}</p>}
-
-      <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-        {page.map((l) => (
-          <li key={l.id}><ListingCard id={l.id} title={l.title} priceMinor={l.price_minor} currency={currency} condition={l.condition} publishedAt={l.published_at} image={covers.get(l.id)?.url} /></li>))}
-      </ul>
-
-      {next && (
-        <div className="mt-12 flex justify-center">
-          <Link href={`/explore?${qs}&at=${encodeURIComponent(next.published_at!)}&after=${next.id}`} className="btn btn-quiet">Load more listings</Link>
-        </div>)}
+      <div className="mt-8">
+        {result.error ? (
+          <p role="alert" className="note note-danger">Search isn&rsquo;t working right now. Try again in a moment.</p>
+        ) : result.items.length === 0 ? (
+          <EmptyState title="No listings match." hint={query.q ? "Check the spelling, try a shorter word, or remove a filter." : "Try removing a filter."} href={hasAny ? "/explore" : "/sell"} action={hasAny ? "Clear everything" : "List the first item"} />
+        ) : (<>
+          <p className="t-meta mb-4" aria-live="polite">{result.next ? `${result.items.length}+ listings` : `${result.items.length} listing${result.items.length === 1 ? "" : "s"}`}</p>
+          <ResultsGrid key={JSON.stringify(gridParams)} initial={result.items} next={result.next} params={gridParams} currency={currency} />
+        </>)}
+      </div>
     </main>
   );
 }

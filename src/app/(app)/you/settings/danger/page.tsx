@@ -30,9 +30,10 @@ export default function DangerPage() {
       </p>
 
       <div className="mt-6 rounded-[var(--radius-md)] bg-danger-tint p-4 text-sm font-medium text-danger">
-        <strong>Before you continue:</strong> active listings will be removed, ongoing
-        conversations will become inaccessible, and reviews tied to your account
-        will be anonymised.
+        <strong>Before you continue:</strong> your listings, photos and messages are
+        deleted. Exchanges you took part in are deleted too, together with the reviews
+        attached to them. That includes reviews you wrote about other people, so their
+        reputation can change.
       </div>
 
       {!open ? (

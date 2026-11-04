@@ -1,44 +1,18 @@
-# f!nd — Product design direction
+# Design direction
 
-## Design objective
+**Principle: elegance in every way.** Quiet interfaces, strong function, one memorable element.
 
-A capable campus marketplace with an editorial, product-led interface. The interface should be quiet; capability should be expressed through fast, predictable workflows rather than explanatory copy.
+## Identity
+- **Signature: the swing-tag price.** A yellow tag with a punched hole sits on every photo. It is real content (the price) doing the branding. Highlighter yellow appears nowhere else except the "!" in the wordmark and unread badges.
+- **Evergreen** is for action and brand. **Near-white paper** is the canvas. Structure comes from hairlines and spacing; surfaces appear only where something is a real object (a sheet, a message bubble).
+- **Type:** Bricolage Grotesque with its width axis (`wdth.css`). Condensed (78-82%) for headings, normal width for reading. Roles: `t-page`, `t-section`, `t-meta`, `label`, `hint`.
+- Tokens (colour, radius, layout widths, z-layers, easing) live in `src/app/globals.css`. Changing the brand means editing that one file.
 
-## Seven disciplines guiding the redesign
+## Navigation
+Five destinations, identical on every screen size: **Home, Explore, Sell, Messages, You**. Desktop uses a left rail (with a "Campus" group for Requests and Lost and found). Phones use a bottom bar with Sell as the one filled action, safe-area padding, and a back-button top bar on deep screens. Chat and listing screens hide the tab bar because they own a bottom action bar.
 
-1. Product strategy — preserve the campus marketplace's core jobs and prioritize discovery, listing, and communication.
-2. Interaction design — reduce steps, expose the next useful action, and make state changes legible.
-3. Visual design — establish hierarchy through typography, proportion, image treatment, alignment, and restraint.
-4. Information architecture — keep five primary destinations; surface requests and lost-and-found contextually.
-5. Usability — remove redundant explanation and ensure empty, loading, error, and success states remain useful.
-6. Frontend architecture — reuse shared components and tokens; preserve server-side data access and route behaviour.
-7. Accessibility and performance — keyboard access, visible focus, responsive touch targets, reduced motion, optimized media, and honest states.
-
-## Visual language
-
-- Warm near-white canvas, deep evergreen ink, restrained yellow punctuation/price accent.
-- Bricolage Grotesque remains the product typeface; hierarchy comes from scale, weight, and spacing rather than decorative treatments.
-- Product photography leads listing cards. Avoid enclosing every item in a card.
-- Hairlines and whitespace establish grouping; use surfaces only when they communicate a real boundary.
-- Compact category navigation, strong search, restrained actions, and product-first grids.
-- Mobile is a composed touch interface with safe-area-aware bottom navigation, not a shrunken desktop.
-
-## Workflow priorities
-
-1. Discover: search, category browse, filters, listing detail, save, contact seller.
-2. Sell: create listing, add/reorder media, preview, publish, manage status.
-3. Communicate: conversation list, listing context, message delivery/retry, report/block.
-4. Participate: requests and lost-and-found, without competing with primary navigation.
-5. Manage identity: profile, listings, saved items, reputation, settings, account controls.
-
-## Implementation boundary
-
-This redesign changes presentation and interaction composition only. Existing Supabase schema, RLS, authentication, storage, server actions, route contracts, and Render/Vercel deployment assumptions are preserved. Database migrations and production environment settings must not be reset or replaced as part of visual work.
-
-## Current implementation slice
-
-- Replaced the home promotional hero with a compact campus identity, functional search, category rail, product-led listing grid, and restrained community modules.
-- Added a dedicated home visual system for typography, spacing, navigation actions, product grids, and community panels.
-- Refined the global content width and desktop navigation treatment.
-
-This is the first implementation slice, not a claim that every route has completed the redesign. Explore, listing detail, sell, messages, profile, settings, onboarding, and moderation still require route-by-route workflow and visual passes.
+## Rules we hold ourselves to
+- Content first: no hero sections, no promotional copy, no invented activity. "Saved most this week" and "More <category>" only appear when real data exists.
+- Lists are hairline rows, not boxed cards. Empty states say what is missing and offer one next step.
+- Every control has a real outcome and honest failure feedback. Destructive actions ask first.
+- Target WCAG 2.2 AA: visible focus, 44px+ touch targets, reduced-motion support, labelled controls, polite live regions.

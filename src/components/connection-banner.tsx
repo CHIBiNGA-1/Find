@@ -14,9 +14,9 @@ export function ConnectionBanner() {
   }, []);
   if (state === "online") return null;
   return (
-    <p role="status" className={`fixed inset-x-0 z-50 px-4 py-2 text-center text-sm font-bold ${state === "offline" ? "bg-ink text-hl" : "bg-success text-white"}`}
+    <p role="status" className={`fixed inset-x-0 z-[var(--z-banner)] px-4 py-2 text-center text-sm font-bold md:left-[var(--rail-w)] md:!top-0 ${state === "offline" ? "bg-ink text-hl" : "bg-success text-white"}`}
       style={{ top: "calc(env(safe-area-inset-top) + 3.5rem)" }}>
-      {state === "offline" ? "You\u2019re offline. Pages you open may not load." : "Back online"}
+      {state === "offline" ? "You\u2019re offline. Pages you open may not load, and messages won\u2019t send until you reconnect." : "Back online"}
     </p>
   );
 }

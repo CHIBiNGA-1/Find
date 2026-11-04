@@ -21,6 +21,15 @@ const PATHS = {
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0",
   arrow: "M5 12h14M13 6l6 6-6 6",
   bookmark: "M6 4h12v17l-6-4-6 4z",
+  grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
+  more: "M5 12h.01M12 12h.01M19 12h.01",
+  share: "M12 3v12M8 7l4-4 4 4M5 12v8h14v-8",
+  close: "M6 6l12 12M18 6L6 18",
+  check: "M5 12l5 5 9-9",
+  image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M9 9h.01",
+  edit: "M4 20h4L19 9l-4-4L4 16z",
+  alert: "M12 4l9 16H3zM12 10v4M12 17h.01",
+  megaphone: "M4 10v4l12 5V5zM16 8a3 3 0 0 1 0 8M7 14l1 5h3l-1-4",
   sliders: "M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6",
 } as const;
 export type IconName = keyof typeof PATHS;

@@ -47,7 +47,7 @@ export function LostFoundForm({ userId }: { userId: string }) {
         <label className="btn btn-quiet cursor-pointer">{photo ? "Change photo" : "Add a photo (optional)"}
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ""; }} /></label>
         <span role="status" className="ml-3 text-sm">{photoState === "uploading" ? "Uploading…" : photoState === "error" ? "Photo failed. Try again, or continue without it." : ""}</span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         {photo && <img src={photo.preview} alt="Chosen item" className="mt-3 max-h-48 rounded-[var(--radius-md)]" />}
       </div>
       {state.message && <p role="alert" className="text-sm font-medium text-danger">{state.message}</p>}

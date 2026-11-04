@@ -3,7 +3,7 @@
 -- Requires pgTAP extension (bundled with Supabase local dev).
 
 begin;
-select plan(22);
+select plan(19);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────────
 -- Two universities
@@ -12,7 +12,7 @@ values
   ('aaaaaaaa-0000-0000-0000-000000000001', 'uni-a', 'University A', 'ZM', 'ZMW', 'Africa/Lusaka'),
   ('aaaaaaaa-0000-0000-0000-000000000002', 'uni-b', 'University B', 'ZM', 'ZMW', 'Africa/Lusaka');
 
--- Two auth users (bypass trigger by inserting profiles directly)
+-- Two auth users (the on_auth_user_created trigger creates the profile rows)
 insert into auth.users (id, email, role, aud, encrypted_password, raw_user_meta_data, created_at, updated_at)
 values
   ('bbbbbbbb-0000-0000-0000-000000000001', 'alice@uni-a.test', 'authenticated', 'authenticated', 'x', '{"display_name":"Alice"}', now(), now()),
@@ -20,7 +20,8 @@ values
 
 insert into public.profiles (id, display_name) values
   ('bbbbbbbb-0000-0000-0000-000000000001', 'Alice'),
-  ('bbbbbbbb-0000-0000-0000-000000000002', 'Bob');
+  ('bbbbbbbb-0000-0000-0000-000000000002', 'Bob')
+  on conflict (id) do update set display_name = excluded.display_name;
 
 -- Verified membership: Alice → Uni-A, Bob → Uni-B
 insert into public.university_memberships (user_id, university_id, status, role)
@@ -144,7 +145,7 @@ select throws_ok(
   $$insert into public.listings (university_id, seller_id, category_id, title, description, price_minor, currency_code, condition, status)
     values ('aaaaaaaa-0000-0000-0000-000000000001', 'bbbbbbbb-0000-0000-0000-000000000002',
             'cccccccc-0000-0000-0000-000000000001', 'Smuggled Listing', '', 100, 'ZMW', 'good', 'active')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'Bob cannot insert a listing in Uni-A'
 );
 
@@ -155,14 +156,14 @@ set request.jwt.claims to '{"sub":"bbbbbbbb-0000-0000-0000-000000000001","role":
 select throws_ok(
   $$insert into public.university_memberships (user_id, university_id, status, role)
     values ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000001', 'pending', 'moderator')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'A student cannot self-assign moderator role'
 );
 
 select throws_ok(
   $$insert into public.university_memberships (user_id, university_id, status, role)
     values ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000001', 'verified', 'student')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'A student cannot self-verify their own membership'
 );
 

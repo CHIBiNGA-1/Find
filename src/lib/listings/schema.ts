@@ -13,5 +13,6 @@ export const listingInput = z.object({
   condition: z.enum(CONDITIONS, { message: "Choose a condition." }),
   categoryId: z.string().uuid("Choose a category."),
   meetingPreferences: z.string().trim().max(500).optional(),
+  campusArea: z.string().trim().max(120, "Keep it under 120 characters.").optional(),
 });
 export type ListingInput = z.infer<typeof listingInput>;

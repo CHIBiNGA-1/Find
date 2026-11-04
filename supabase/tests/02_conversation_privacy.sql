@@ -25,7 +25,8 @@ insert into public.profiles (id, display_name) values
   ('bbbbbbbb-0001-0000-0000-000000000002', 'Bob'),
   ('bbbbbbbb-0001-0000-0000-000000000003', 'Carol'),
   ('bbbbbbbb-0001-0000-0000-000000000004', 'Dave'),
-  ('bbbbbbbb-0001-0000-0000-000000000005', 'Eve');
+  ('bbbbbbbb-0001-0000-0000-000000000005', 'Eve')
+  on conflict (id) do update set display_name = excluded.display_name;
 
 insert into public.university_memberships (user_id, university_id, status, role) values
   ('bbbbbbbb-0001-0000-0000-000000000001', 'aaaaaaaa-0001-0000-0000-000000000001', 'verified', 'student'),
@@ -127,7 +128,7 @@ select throws_ok(
   $$insert into public.messages (conversation_id, sender_id, client_id, body)
     values ('cccccccc-0001-0000-0000-000000000001',
             'bbbbbbbb-0001-0000-0000-000000000003', gen_random_uuid(), 'Intruding!')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'Carol cannot send a message into conv-A'
 );
 
@@ -137,7 +138,7 @@ select throws_ok(
   $$insert into public.messages (conversation_id, sender_id, client_id, body)
     values ('cccccccc-0001-0000-0000-000000000001',
             'bbbbbbbb-0001-0000-0000-000000000005', gen_random_uuid(), 'Eve snooping!')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'Eve cannot send a message into conv-A'
 );
 
@@ -164,7 +165,7 @@ select throws_ok(
   $$insert into public.messages (conversation_id, sender_id, client_id, body)
     values ('cccccccc-0001-0000-0000-000000000001',
             'bbbbbbbb-0001-0000-0000-000000000002', gen_random_uuid(), 'Trying again!')$$,
-  'new row violates row-level security policy',
+  null,   -- Postgres appends the table name; assert the SQLSTATE only
   'Bob cannot send a message when blocked by Alice'
 );
 

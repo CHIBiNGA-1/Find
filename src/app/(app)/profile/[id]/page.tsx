@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import { getContext } from "@/lib/session";
+import { formatDate } from "@/lib/time";
 import { ListingCard } from "@/components/listing-card";
 import { ReportDialog } from "@/components/report-dialog";
 import { coverImages } from "@/lib/listings/queries";
 
 export default async function Profile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase, userId, currency } = await getContext();
+  const { supabase, userId, currency, timezone } = await getContext();
   const { data: p } = await supabase.from("profiles").select("id, display_name, created_at").eq("id", id).maybeSingle();
   if (!p) notFound();
   type RepRow = { review_count: number; avg_rating: string | null };
@@ -24,7 +25,7 @@ export default async function Profile({ params }: { params: Promise<{ id: string
       <div className="flex items-center gap-4">
         <span aria-hidden="true" className="grid size-20 shrink-0 place-items-center rounded-[var(--radius-md)] bg-ink text-[2.25rem] font-extrabold text-white">{name.charAt(0).toUpperCase()}</span>
         <div><h1 className="t-page">{name}</h1>
-          <p className="mt-2">{n > 0 ? <><span className="tag tag-amber price mr-2">{rep?.[0]?.avg_rating} out of 5</span><span className="t-meta">from {n} confirmed exchange{n === 1 ? "" : "s"}</span></> : <span className="t-meta">No reviews yet</span>}</p></div>
+          <p className="mt-2">{n > 0 ? <><span className="tag mr-2">{rep?.[0]?.avg_rating} out of 5</span><span className="t-meta">from {n} confirmed exchange{n === 1 ? "" : "s"}</span></> : <span className="t-meta">No reviews yet</span>}</p></div>
       </div>
       <p className="t-meta mt-5 max-w-xl">Verified member of the university. Verification confirms membership, not how someone will behave. Reviews only come from exchanges both people confirmed.</p>
       {id !== userId && <div className="mt-3"><ReportDialog type="user" targetId={id} label="Report user" /></div>}
@@ -34,7 +35,7 @@ export default async function Profile({ params }: { params: Promise<{ id: string
 
       {n > 0 && <><h2 className="mb-3 mt-12 text-[1.75rem] md:text-[2.125rem]">Reviews</h2>
         <ul className="divide-y divide-line border-y border-line">{reviews?.map((r) => <li key={r.id} className="py-4">
-          <p className="text-sm"><span className="font-extrabold">{r.rating} out of 5</span> <span className="text-muted">from {(r.reviewer as unknown as { display_name: string } | null)?.display_name ?? "a student"}, {new Date(r.created_at).toLocaleDateString()}</span></p>
+          <p className="text-sm"><span className="font-extrabold">{r.rating} out of 5</span> <span className="text-muted">from {(r.reviewer as unknown as { display_name: string } | null)?.display_name ?? "a student"}, {formatDate(r.created_at, timezone, true)}</span></p>
           {r.comment && <p className="mt-1.5 max-w-prose">{r.comment}</p>}
           {id === userId && <div className="mt-1"><ReportDialog type="review" targetId={r.id} label="Dispute this review" /></div>}
         </li>)}</ul></>}
