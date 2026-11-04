@@ -11,8 +11,25 @@ const PORT = 3100, BASE = `http://localhost:${PORT}`, OUT = process.env.SHOTS ??
 fs.mkdirSync(OUT, { recursive: true });
 const id = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const { srv, rpcLog } = await start();
-const app = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("..", import.meta.url).pathname, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-local-mock-tests-only", NEXT_PUBLIC_VAPID_PUBLIC_KEY: "BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs", VAPID_PRIVATE_KEY: "z1dZ8B1kCagB3g5aF66c8nJmNYy2K1CY86kB14TWP_U", VAPID_SUBJECT: "mailto:test@example.com", SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-mock-tests-only", PUSH_WEBHOOK_SECRET: "test-webhook-secret" }, stdio: "ignore" });
-for (let i = 0; i < 60; i++) { try { await fetch(BASE + "/welcome"); break; } catch { await new Promise((r) => setTimeout(r, 500)); } }
+const root = new URL("..", import.meta.url).pathname;
+const app = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], { cwd: root, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-local-mock-tests-only", NEXT_PUBLIC_VAPID_PUBLIC_KEY: "BMPWJynqhlN_7a19dTAmSDePnQa_3UjBR98dD-xL-QFYd7Xv8fzhPN_YvAo35RsBDsZU20WXuZJOMPSf_IBOpfs", VAPID_PRIVATE_KEY: "z1dZ8B1kCagB3g5aF66c8nJmNYy2K1CY86kB14TWP_U", VAPID_SUBJECT: "mailto:test@example.com", SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-mock-tests-only", PUSH_WEBHOOK_SECRET: "test-webhook-secret" }, stdio: "ignore" });
+let serverReady = false;
+for (let i = 0; i < 60 && app.exitCode === null; i++) {
+  try {
+    const response = await fetch(BASE + "/welcome");
+    if (response.ok) {
+      await response.arrayBuffer();
+      serverReady = true;
+      break;
+    }
+  } catch {}
+  await new Promise((r) => setTimeout(r, 500));
+}
+if (!serverReady) {
+  app.kill();
+  srv.close();
+  throw new Error("Next.js test server did not become ready");
+}
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({ sub: "00000000-0000-4000-8000-000000000001", role: "authenticated", aud: "authenticated", exp: Math.floor(Date.now() / 1000) + 86400 })}.sig`;
 const session = { access_token: jwt, token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "r", user: { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", email: "mwansa@unza.test" } };
